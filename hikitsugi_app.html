@@ -453,6 +453,101 @@
     .detail-table td { padding: 6px 8px; vertical-align: top; border-bottom: 1px solid var(--border); }
     .detail-table .dt-key { color: var(--txt-sub); font-weight: 600; white-space: nowrap; width: 40%; font-size: 0.875rem; }
     .detail-table .dt-val { white-space: pre-wrap; color: var(--txt); }
+
+    /* ─── 印刷用スタイル (@media print) ────────────────── */
+    @media print {
+      /* 画面表示用UIをすべて隠す */
+      #app, #modal-overlay { display: none !important; }
+
+      /* 印刷エリアだけを表示 */
+      #print-area { display: block !important; }
+
+      /* A4・余白設定 */
+      @page {
+        size: A4 portrait;
+        margin: 12mm 15mm 12mm 20mm; /* 左20mm=ファイリング余白 */
+      }
+
+      html, body {
+        font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+                     "Noto Sans JP", sans-serif;
+        font-size: 10pt;
+        line-height: 1.5;
+        color: #000;
+        background: #fff;
+      }
+
+      /* 印刷エリア内の基本スタイル */
+      #print-area h1 {
+        font-size: 14pt;
+        font-weight: bold;
+        text-align: center;
+        margin: 0 0 6pt;
+        border-bottom: 1.5pt solid #000;
+        padding-bottom: 4pt;
+      }
+
+      .p-section {
+        margin-bottom: 5pt;
+        break-inside: avoid;
+      }
+
+      .p-sec-bar {
+        font-size: 9pt;
+        font-weight: bold;
+        padding: 2pt 5pt;
+        margin-bottom: 3pt;
+      }
+      .p-sec-common  { background: #e8e8e8; }
+      .p-sec-helper  { background: #c6d9f1; }
+      .p-sec-medical { background: #c6dec6; }
+      .p-sec-work    { background: #e8d5f5; }
+
+      .p-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+      }
+      .p-table td {
+        border: 0.5pt solid #888;
+        padding: 3pt 5pt;
+        vertical-align: top;
+      }
+      .p-table .p-key {
+        background: #f0f0f0;
+        font-weight: bold;
+        width: 28%;
+        white-space: nowrap;
+      }
+      .p-table .p-val {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .p-table .p-full {
+        /* チェック・フリー欄など横幅いっぱい */
+      }
+
+      /* バイタル行：横並び3列 */
+      .p-vital-row td { width: 33%; }
+
+      /* 申し送り欄：高さを確保 */
+      .p-okuri-val {
+        min-height: 40pt;
+        white-space: pre-wrap;
+      }
+
+      /* 注記 */
+      .p-note {
+        font-size: 8pt;
+        margin-top: 4pt;
+      }
+
+      /* 非表示セクションは印刷しない */
+      .p-section[data-hidden="true"] { display: none !important; }
+    }
+
+    /* 画面表示時は印刷エリアを隠す */
+    #print-area { display: none; }
   </style>
 </head>
 
@@ -836,10 +931,18 @@
     <div id="modal-box">
       <h2 id="modal-title" class="card-title" style="margin-bottom:12px">記録の詳細</h2>
       <div id="modal-content"></div>
-      <button class="btn-secondary" style="margin-top:14px;width:100%"
-              onclick="closeModal()">閉じる</button>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn-secondary" style="flex:1"
+                onclick="printRecord()"
+                aria-label="この記録を印刷またはPDF保存します">印刷・PDF保存</button>
+        <button class="btn-secondary" style="flex:1"
+                onclick="closeModal()">閉じる</button>
+      </div>
     </div>
   </div>
+
+  <!-- ===== 印刷専用エリア（@media printのみ表示） ===== -->
+  <div id="print-area" aria-hidden="true"></div>
 
   <script>
     /* ─── 定数 ─────────────────────────────────────── */
@@ -851,11 +954,12 @@
     const SCHEDULE = {
       1: [
         { time: '10:15–11:00', svc: '訪問鍼灸' },
-        { time: '11:00–12:30', svc: '家事援助' },
+        { time: '10:30–12:00', svc: '家事援助' },
       ],
       2: [
         { time: '11:20–12:40', svc: '訪問看護' },
-        { time: '13:30–14:30', svc: '家事援助' },
+        { time: '13:30–14:30', svc: '本人：家事援助' },
+        { time: '14:30–15:30', svc: '母：家事援助' },
         { time: '15:30–16:30', svc: '入浴介助' },
       ],
       3: [
@@ -869,8 +973,8 @@
       ],
       5: [
         { time: '9:00–10:00',  svc: '訪問服薬指導（第1・3金）' },
-        { time: '13:00–14:00', svc: '家事援助' },
-        { time: '14:00–15:00', svc: '入浴介助' },
+        { time: '12:50–13:50', svc: '入浴介助' },
+        { time: '13:50–14:50', svc: '家事援助' },
         { time: '16:00–16:30', svc: '訪問鍼灸' },
       ],
       6: [
@@ -879,8 +983,9 @@
       0: [
         { time: '13:00–14:30', svc: '母：訪問リハ' },
         { time: '14:30–15:20', svc: '本人：訪問リハ' },
-        { time: '15:30–17:00', svc: '家事援助' },
-        { time: '17:00–18:00', svc: '入浴介助' },
+        { time: '15:30–16:30', svc: '本人：家事援助' },
+        { time: '16:30–17:30', svc: '入浴介助' },
+        { time: '17:30–18:00', svc: '母：家事援助' },
       ],
     };
 
@@ -1027,6 +1132,7 @@
     function viewDetail(id) {
       const r = getRecords().find(x => x.id === id);
       if (!r) return;
+      currentPrintRecord = id;  // 印刷対象として記憶
 
       const rows = [
         ['日付',         r.date],
@@ -1078,6 +1184,155 @@
       /* フォーカスを過去ログの先頭へ戻す */
       const firstItem = document.querySelector('#log-list button');
       if (firstItem) firstItem.focus();
+    }
+
+    /* ─── 印刷・PDF出力 ──────────────────────────── */
+    // サービス種別ごとに印刷するセクション（SECTION_RULESと同一定義）
+    const PRINT_RULES = {
+      vital:  ['訪問看護', '訪問診療', '訪問リハビリ'],
+      haha:   ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
+               '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
+      iryo:   ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
+    };
+
+    // 現在モーダルに表示中の記録IDを保持
+    let currentPrintRecord = null;
+
+    function row(key, val) {
+      if (!val) return '';
+      return '<tr><td class="p-key">' + escHtml(key) + '</td>' +
+             '<td class="p-val">' + escHtml(val) + '</td></tr>';
+    }
+
+    function rowFull(val) {
+      if (!val) return '';
+      return '<tr><td class="p-val p-full" colspan="2">' + escHtml(val) + '</td></tr>';
+    }
+
+    function secBar(label, cls) {
+      return '<div class="p-sec-bar ' + cls + '">' + escHtml(label) + '</div>';
+    }
+
+    function buildPrintArea(r) {
+      const svc     = r.svctype || '';
+      const showVital = PRINT_RULES.vital.includes(svc) || svc === '';
+      const showHaha  = PRINT_RULES.haha.includes(svc)  || svc === '';
+      const showIryo  = PRINT_RULES.iryo.includes(svc)  || svc === '';
+
+      // 時刻文字列
+      const timeStr = [r.start, r.end].filter(Boolean).join(' ～ ');
+      // 実施サービス
+      const doneStr = (r.done || []).join('　');
+      // バッジ用
+      const svcCls = MEDICAL_SVC.has(svc) ? 'p-sec-medical'
+                   : svc === '就労支援特別事業' ? 'p-sec-work'
+                   : 'p-sec-helper';
+
+      let html = '<h1>引き継ぎ連絡票</h1>';
+
+      /* ── 基本情報（共通） ── */
+      html += '<div class="p-section">' +
+        secBar('共　通　基本情報', 'p-sec-common') +
+        '<table class="p-table">' +
+        '<tr>' +
+          '<td class="p-key">日付・曜日</td>' +
+          '<td class="p-val">' + escHtml(r.date) + '</td>' +
+          '<td class="p-key">訪問時間</td>' +
+          '<td class="p-val">' + escHtml(timeStr) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td class="p-key">事業所名</td>' +
+          '<td class="p-val">' + escHtml(r.office || '') + '</td>' +
+          '<td class="p-key">担当者氏名</td>' +
+          '<td class="p-val">' + escHtml(r.staff || '') + '</td>' +
+        '</tr>' +
+        '<tr>' +
+          '<td class="p-key">サービス種別</td>' +
+          '<td class="p-val" colspan="3">' + escHtml(svc) + '</td>' +
+        '</tr>' +
+        '</table></div>';
+
+      /* ── 本人の状態（ヘルパー記入） ── */
+      const visionStr = [r.vision, r.vision_note].filter(Boolean).join('　');
+      const painStr   = r.pain === 'あり' && r.pain_note
+                        ? 'あり：' + r.pain_note : (r.pain || '');
+      const fallStr   = r.fall === 'あり' && r.fall_note
+                        ? 'あり：' + r.fall_note : (r.fall || '');
+
+      html += '<div class="p-section">' +
+        secBar('ヘルパー記入　本人の状態', 'p-sec-helper') +
+        '<table class="p-table">' +
+        row('体調全般',     r.condition) +
+        row('気分・精神状態', r.mood) +
+        row('食事・水分摂取', r.food) +
+        row('疼痛・痺れ等',  painStr) +
+        row('転倒・ヒヤリ',  fallStr) +
+        row('見えにくさ・視覚的困りごと', visionStr) +
+        '</table></div>';
+
+      /* ── バイタル（医療職記入）── 非表示なら出力しない */
+      if (showVital) {
+        const bpStr = (r.bph && r.bpl) ? r.bph + '/' + r.bpl + ' mmHg' : '';
+        html += '<div class="p-section">' +
+          secBar('医療職記入　バイタル記録', 'p-sec-medical') +
+          '<table class="p-table"><tr class="p-vital-row">' +
+          '<td class="p-key">体温</td><td class="p-val">' + escHtml(r.temp ? r.temp + ' ℃' : '') + '</td>' +
+          '<td class="p-key">血圧</td><td class="p-val">' + escHtml(bpStr) + '</td>' +
+          '<td class="p-key">脈拍</td><td class="p-val">' + escHtml(r.pulse ? r.pulse + ' 回/分' : '') + '</td>' +
+          '</tr></table></div>';
+      }
+
+      /* ── 母親の状態（ヘルパー記入）── 非表示なら出力しない */
+      if (showHaha) {
+        const momStr = [r.mom, r.mom_note].filter(Boolean).join('　');
+        html += '<div class="p-section">' +
+          secBar('ヘルパー記入　母親の状態', 'p-sec-helper') +
+          '<table class="p-table">' +
+          row('体調', momStr) +
+          '</table></div>';
+      }
+
+      /* ── 実施内容（ヘルパー記入） ── */
+      html += '<div class="p-section">' +
+        secBar('ヘルパー記入　実施内容', 'p-sec-helper') +
+        '<table class="p-table">' +
+        row('実施サービス', doneStr) +
+        row('未実施・理由',  r.undone) +
+        '</table></div>';
+
+      /* ── 医療・投薬（医療職記入）── 非表示なら出力しない */
+      if (showIryo) {
+        const rxStr = r.rx === 'あり' && r.rx_note
+                      ? 'あり：' + r.rx_note : (r.rx || '');
+        html += '<div class="p-section">' +
+          secBar('医療職記入　医療・投薬関連', 'p-sec-medical') +
+          '<table class="p-table">' +
+          row('処方薬の変更', rxStr) +
+          '</table></div>';
+      }
+
+      /* ── 申し送り（共通） ── */
+      html += '<div class="p-section">' +
+        secBar('共　通　申し送り・連絡事項（次の援助者へ）', 'p-sec-common') +
+        '<table class="p-table">' +
+        '<tr><td class="p-val p-okuri-val" colspan="2">' +
+        escHtml(r.okuri || '') + '</td></tr>' +
+        '</table></div>';
+
+      /* ── 欄外注記 ── */
+      html += '<p class="p-note">※ 緊急度の高い内容には「【要確認】」と記入してください。</p>';
+
+      return html;
+    }
+
+    function printRecord() {
+      if (!currentPrintRecord) return;
+      const r = getRecords().find(x => x.id === currentPrintRecord);
+      if (!r) return;
+
+      document.getElementById('print-area').innerHTML = buildPrintArea(r);
+      announce('印刷ダイアログを開きます');
+      setTimeout(() => window.print(), 150);
     }
 
     /* ─── 削除 ───────────────────────────────────── */
