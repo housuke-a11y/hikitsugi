@@ -417,6 +417,14 @@
       overflow: hidden;
     }
 
+    /* ─── セクション表示切り替え ────────────────────────── */
+    .card[id^="sec-"] {
+      transition: opacity .2s ease;
+    }
+    .card[id^="sec-"][style*="none"] {
+      opacity: 0;
+    }
+
     /* ─── フォームの区切り余白 ───────────────────────── */
     .field { margin-top: 12px; }
     .field:first-child { margin-top: 0; }
@@ -565,7 +573,7 @@
         </div>
 
         <!-- 本人の状態（ヘルパー記入） -->
-        <div class="card">
+        <div class="card" id="sec-honnin">
           <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態</div>
 
           <fieldset style="border:none;padding:0" class="field">
@@ -647,7 +655,7 @@
         </div>
 
         <!-- バイタル（医療職記入） -->
-        <div class="card">
+        <div class="card" id="sec-vital">
           <div class="sec-bar sec-medical" role="heading" aria-level="2">医療職記入　バイタル記録</div>
           <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
             空欄可。医療職が記入してください。
@@ -679,7 +687,7 @@
         </div>
 
         <!-- 母親の状態（ヘルパー記入） -->
-        <div class="card">
+        <div class="card" id="sec-haha">
           <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　母親の状態</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調</legend>
@@ -700,7 +708,7 @@
         </div>
 
         <!-- 実施内容（ヘルパー記入） -->
-        <div class="card">
+        <div class="card" id="sec-jisshi">
           <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　実施内容</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">
@@ -732,7 +740,7 @@
         </div>
 
         <!-- 医療・投薬関連（医療職記入） -->
-        <div class="card">
+        <div class="card" id="sec-iryo">
           <div class="sec-bar sec-medical" role="heading" aria-level="2">医療職記入　医療・投薬関連</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">処方薬の変更</legend>
@@ -1217,8 +1225,45 @@
           '</div>';
       }).join('');
 
+      // ── セクション表示制御 ──────────────────────────────────────
+      // サービス種別ごとに表示するセクションを定義
+      // キー：セクションid  値：表示するサービス種別の配列（空配列＝全種別で表示）
+      const SECTION_RULES = {
+        'sec-honnin':  [],  // 全種別で表示
+        'sec-vital':   ['訪問看護', '訪問診療', '訪問リハビリ'],
+        'sec-haha':    ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
+                        '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
+        'sec-jisshi':  [],  // 全種別で表示
+        'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
+      };
+
+      Object.entries(SECTION_RULES).forEach(([secId, svcs]) => {
+        const el = document.getElementById(secId);
+        if (!el) return;
+        const show = svcs.length === 0 || svcs.includes(svc) || svc === '';
+        el.style.display = show ? '' : 'none';
+        // 非表示セクション内のinput/select/textareaをdisabledにして
+        // 保存時に誤ってデータが入らないようにする
+        el.querySelectorAll('input, select, textarea').forEach(inp => {
+          inp.disabled = !show;
+        });
+      });
+
       // VoiceOver向けアナウンス
-      announce('実施内容の選択肢を「' + (svc || '家事援助・入浴介助') + '」用に更新しました');
+      const secNames = {
+        '家事援助':       '家事援助（バイタル・医療投薬・母親の状態は非表示）',
+        '入浴介助':       '入浴介助（バイタル・医療投薬・母親の状態は非表示）',
+        '訪問看護':       '訪問看護（全セクション表示）',
+        '訪問鍼灸':       '訪問鍼灸（バイタル・母親の状態は非表示）',
+        '同行援護':       '同行援護（バイタル・母親の状態・医療投薬は非表示）',
+        '訪問診療':       '訪問診療（全セクション表示）',
+        '訪問服薬指導':   '訪問服薬指導（バイタルは非表示）',
+        '訪問リハビリ':   '訪問リハビリ（医療投薬は非表示）',
+        '就労支援特別事業': '就労支援特別事業（バイタル・母親の状態・医療投薬は非表示）',
+        '':               'サービス種別を選択してください',
+      };
+      announce('サービス種別を「' + (svc || '未選択') + '」に設定しました。' +
+               (secNames[svc] || '') + '。実施内容の選択肢も更新しました。');
     }
 
     /* ─── フォームクリア ─────────────────────────── */
@@ -1226,8 +1271,8 @@
       document.getElementById('record-form').reset();
       document.getElementById('f-date').value =
         new Date().toISOString().slice(0, 10);
-      updateDoneChecks();  // チェック項目をデフォルトに戻す
-      announce('フォームをクリアしました');
+      updateDoneChecks();  // チェック項目のリセットとセクション表示の初期化を兼ねる
+      announce('フォームをクリアしました。サービス種別を選択すると関係のない入力欄が非表示になります。');
     }
 
     /* ─── 音声入力（Web Speech API） ────────────── */
