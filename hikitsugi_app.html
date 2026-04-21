@@ -583,14 +583,24 @@
     <main id="page-home" class="page active"
           role="main" aria-label="ホーム画面">
 
-      <section class="card" aria-labelledby="h-okuri">
-        <h2 class="card-title" id="h-okuri">前回の申し送り事項</h2>
-        <div id="prev-okuri" class="alert-none" role="status">記録がありません</div>
+      <section class="card" aria-labelledby="h-okuri-dan">
+        <h2 class="card-title" id="h-okuri-dan">前回の申し送り事項（旦）</h2>
+        <div id="prev-okuri-dan" class="alert-none" role="status">記録がありません</div>
       </section>
 
-      <section class="card" aria-labelledby="h-miss">
-        <h2 class="card-title" id="h-miss">前回の未実施ケアと理由</h2>
-        <div id="prev-miss" class="alert-none" role="status">記録がありません</div>
+      <section class="card" aria-labelledby="h-miss-dan">
+        <h2 class="card-title" id="h-miss-dan">前回の未実施ケアと理由（旦）</h2>
+        <div id="prev-miss-dan" class="alert-none" role="status">記録がありません</div>
+      </section>
+
+      <section class="card" aria-labelledby="h-okuri-sanae">
+        <h2 class="card-title" id="h-okuri-sanae">前回の申し送り事項（早南江）</h2>
+        <div id="prev-okuri-sanae" class="alert-none" role="status">記録がありません</div>
+      </section>
+
+      <section class="card" aria-labelledby="h-miss-sanae">
+        <h2 class="card-title" id="h-miss-sanae">前回の未実施ケアと理由（早南江）</h2>
+        <div id="prev-miss-sanae" class="alert-none" role="status">記録がありません</div>
       </section>
 
       <section class="card" aria-labelledby="h-sched">
@@ -611,13 +621,24 @@
 
       <form id="record-form" onsubmit="saveRecord(event)" novalidate>
 
-        <!-- 編集モード表示ラベル -->
         <div id="form-mode-label" role="status" aria-live="polite"
-             style="font-size:0.875rem;font-weight:600;color:var(--danger);padding:6px 10px;margin-bottom:4px;min-height:1.5em"></div>
+             style="font-size:0.875rem;font-weight:600;color:var(--danger);padding:6px 10px;min-height:1.5em"></div>
 
         <!-- 基本情報（共通） -->
         <div class="card">
           <div class="sec-bar sec-common" role="heading" aria-level="2">共　通　基本情報</div>
+
+          <fieldset class="field" style="border:none;padding:0">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:6px">
+              対象者 <span aria-hidden="true">*</span>
+            </legend>
+            <div class="check-group grp-common"
+                 role="radiogroup" aria-label="記録の対象者を選択してください"
+                 onchange="updateSubject()">
+              <div class="check-item"><input type="radio" name="subject" id="subj1" value="旦" onchange="updateSubject()"><label for="subj1">旦（河和 旦）</label></div>
+              <div class="check-item"><input type="radio" name="subject" id="subj2" value="早南江" onchange="updateSubject()"><label for="subj2">早南江（河和 早南江）</label></div>
+            </div>
+          </fieldset>
 
           <div class="field">
             <label for="f-date">日付 <span aria-hidden="true">*</span></label>
@@ -661,19 +682,20 @@
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc2" value="入浴介助"><label for="svc2">入浴介助</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc3" value="訪問看護"><label for="svc3">訪問看護</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc4" value="訪問鍼灸"><label for="svc4">訪問鍼灸</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
+              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc6" value="訪問診療"><label for="svc6">訪問診療</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc7" value="訪問服薬指導"><label for="svc7">訪問服薬指導</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
+              <div class="check-item svc-sanae-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
+              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc9" value="その他"><label for="svc9">その他</label></div>
             </div>
           </fieldset>
         </div>
 
-        <!-- 本人の状態（ヘルパー記入） -->
+        <!-- 本人の状態：旦 -->
         <div class="card" id="sec-honnin">
-          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態</div>
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態（旦）</div>
 
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
@@ -749,6 +771,103 @@
               <button type="button" class="mic-btn"
                       onclick="startVoice('f-vision-note', this)"
                       aria-label="視覚による困りごとの音声入力を開始">🎤</button>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- 本人の状態：早南江 -->
+        <div class="card" id="sec-honnin-sanae" style="display:none">
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態（早南江）</div>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_condition" id="sc1" value="良好"><label for="sc1">良好</label></div>
+              <div class="check-item"><input type="radio" name="s_condition" id="sc2" value="やや不良"><label for="sc2">やや不良</label></div>
+              <div class="check-item"><input type="radio" name="s_condition" id="sc3" value="不良"><label for="sc3">不良</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">気分・精神状態</legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_mood" id="sm1" value="穏やか"><label for="sm1">穏やか</label></div>
+              <div class="check-item"><input type="radio" name="s_mood" id="sm2" value="不安・緊張あり"><label for="sm2">不安・緊張あり</label></div>
+              <div class="check-item"><input type="radio" name="s_mood" id="sm3" value="その他"><label for="sm3">その他</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">食事・水分摂取</legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_food" id="sf1" value="摂取できている"><label for="sf1">摂取できている</label></div>
+              <div class="check-item"><input type="radio" name="s_food" id="sf2" value="少ない"><label for="sf2">少ない</label></div>
+              <div class="check-item"><input type="radio" name="s_food" id="sf3" value="摂取できていない"><label for="sf3">摂取できていない</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">動悸・息切れ・胸部症状<span style="font-size:0.75rem;font-weight:400;margin-left:6px">（心房細動・急性貧血の既往あり）</span></legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_cardiac" id="sca1" value="なし"><label for="sca1">なし</label></div>
+              <div class="check-item"><input type="radio" name="s_cardiac" id="sca2" value="あり"><label for="sca2">あり</label></div>
+            </div>
+            <div class="mic-row" style="margin-top:8px">
+              <textarea id="f-cardiac-note" name="cardiac_note" rows="2"
+                        placeholder="症状の内容（音声または入力）"
+                        aria-label="動悸・胸部症状の内容。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-cardiac-note', this)"
+                      aria-label="動悸・胸部症状の音声入力を開始">🎤</button>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">腰痛・股関節痛（右）<span style="font-size:0.75rem;font-weight:400;margin-left:6px">（慢性腰痛・右股関節人工関節）</span></legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_pain_joint" id="spj1" value="変化なし"><label for="spj1">変化なし</label></div>
+              <div class="check-item"><input type="radio" name="s_pain_joint" id="spj2" value="やや強い"><label for="spj2">やや強い</label></div>
+              <div class="check-item"><input type="radio" name="s_pain_joint" id="spj3" value="強い"><label for="spj3">強い</label></div>
+            </div>
+            <div class="mic-row" style="margin-top:8px">
+              <textarea id="f-joint-note" name="joint_note" rows="2"
+                        placeholder="具体的な状況（音声または入力）"
+                        aria-label="腰痛・股関節痛の内容。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-joint-note', this)"
+                      aria-label="腰痛・股関節痛の音声入力を開始">🎤</button>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">疼痛・痺れ等のその他訴え</legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_pain" id="sp1" value="なし"><label for="sp1">なし</label></div>
+              <div class="check-item"><input type="radio" name="s_pain" id="sp2" value="あり"><label for="sp2">あり</label></div>
+            </div>
+            <div class="mic-row" style="margin-top:8px">
+              <textarea id="f-spain-note" name="spain_note" rows="2"
+                        placeholder="訴えの内容（音声または入力）"
+                        aria-label="その他疼痛・痺れの内容。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-spain-note', this)"
+                      aria-label="その他疼痛内容の音声入力を開始">🎤</button>
+            </div>
+          </fieldset>
+
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">転倒・ヒヤリハット</legend>
+            <div class="check-group grp-helper">
+              <div class="check-item"><input type="radio" name="s_fall" id="sfa1" value="なし"><label for="sfa1">なし</label></div>
+              <div class="check-item"><input type="radio" name="s_fall" id="sfa2" value="あり"><label for="sfa2">あり</label></div>
+            </div>
+            <div class="mic-row" style="margin-top:8px">
+              <textarea id="f-sfall-note" name="sfall_note" rows="2"
+                        placeholder="内容（音声または入力）"
+                        aria-label="転倒・ヒヤリハットの内容。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-sfall-note', this)"
+                      aria-label="転倒・ヒヤリハット内容の音声入力を開始">🎤</button>
             </div>
           </fieldset>
         </div>
@@ -907,8 +1026,18 @@
               <option>訪問診療</option>
               <option>訪問服薬指導</option>
               <option>訪問リハビリ</option>
+              <option>通院介助</option>
               <option>就労支援特別事業</option>
               <option>その他</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-subject">対象者</label>
+            <select id="filter-subject" onchange="renderLog()"
+                    aria-label="対象者で絞り込み">
+              <option value="">全員</option>
+              <option value="旦">旦</option>
+              <option value="早南江">早南江</option>
             </select>
           </div>
           <div>
@@ -1045,32 +1174,44 @@
     /* ─── ホーム画面描画 ─────────────────────────── */
     function renderHome() {
       const records = getRecords();
-      const prev = records.length > 0 ? records[records.length - 1] : null;
 
-      /* 前回申し送り */
-      const okuriEl = document.getElementById('prev-okuri');
-      if (prev && prev.okuri && prev.okuri.trim()) {
-        okuriEl.className = 'prev-box';
-        okuriEl.innerHTML =
-          `<div class="prev-meta">${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
-          `<div class="prev-body">${escHtml(prev.okuri)}</div>`;
-      } else {
-        okuriEl.className = 'alert-none';
-        okuriEl.textContent = '申し送り事項の記録がありません';
+      /* 対象者ごとに最新記録を取得 */
+      function lastOf(subj) {
+        const filtered = records.filter(r => (r.subject || '旦') === subj);
+        return filtered.length > 0 ? filtered[filtered.length - 1] : null;
       }
 
-      /* 前回未実施 */
-      const missEl = document.getElementById('prev-miss');
-      if (prev && prev.undone && prev.undone.trim()) {
-        missEl.className = 'alert-warn';
-        missEl.innerHTML =
-          `<div style="font-size:0.8125rem;font-weight:600;color:#7a5c00;margin-bottom:6px">` +
-          `${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
-          `<div>${escHtml(prev.undone)}</div>`;
-      } else {
-        missEl.className = 'alert-none';
-        missEl.textContent = '未実施ケアの記録がありません';
+      function fillOkuri(elId, prev) {
+        const el = document.getElementById(elId);
+        if (prev && prev.okuri && prev.okuri.trim()) {
+          el.className = 'prev-box';
+          el.innerHTML =
+            `<div class="prev-meta">${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
+            `<div class="prev-body">${escHtml(prev.okuri)}</div>`;
+        } else {
+          el.className = 'alert-none';
+          el.textContent = '申し送り事項の記録がありません';
+        }
       }
+
+      function fillMiss(elId, prev) {
+        const el = document.getElementById(elId);
+        if (prev && prev.undone && prev.undone.trim()) {
+          el.className = 'alert-warn';
+          el.innerHTML =
+            `<div style="font-size:0.8125rem;font-weight:600;color:#7a5c00;margin-bottom:6px">` +
+            `${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
+            `<div>${escHtml(prev.undone)}</div>`;
+        } else {
+          el.className = 'alert-none';
+          el.textContent = '未実施ケアの記録がありません';
+        }
+      }
+
+      fillOkuri('prev-okuri-dan',   lastOf('旦'));
+      fillMiss ('prev-miss-dan',    lastOf('旦'));
+      fillOkuri('prev-okuri-sanae', lastOf('早南江'));
+      fillMiss ('prev-miss-sanae',  lastOf('早南江'));
 
       /* 今日のスケジュール */
       const dow = new Date().getDay();
@@ -1091,11 +1232,13 @@
 
     /* ─── 過去ログ描画 ───────────────────────────── */
     function renderLog() {
-      const type = document.getElementById('filter-type').value;
-      const sort = document.getElementById('filter-sort').value;
+      const type    = document.getElementById('filter-type').value;
+      const sort    = document.getElementById('filter-sort').value;
+      const subject = document.getElementById('filter-subject').value;
 
       let records = getRecords();
-      if (type) records = records.filter(r => r.svctype === type);
+      if (type)    records = records.filter(r => r.svctype === type);
+      if (subject) records = records.filter(r => (r.subject || '旦') === subject);
 
       records.sort((a, b) => {
         const da = a.savedAt || 0;
@@ -1118,7 +1261,8 @@
           `<span class="log-meta">${escHtml(r.date)}${timeStr ? '　' + escHtml(timeStr) : ''}</span>` +
           `${svcBadge(r.svctype)}` +
           `</div>` +
-          `<div class="log-staff">${escHtml(r.staff || r.office || '（担当者不明）')}</div>` +
+          `<div class="log-staff">${escHtml(r.staff || r.office || '（担当者不明）')}` +
+          `　<span style="font-size:0.8125rem;color:var(--txt-sub)">${escHtml(r.subject || '旦')}</span></div>` +
           (r.okuri   ? `<div class="log-snippet">${escHtml(r.okuri)}</div>` : '') +
           (r.undone  ? `<div class="log-snippet" style="color:var(--danger)">未実施：${escHtml(r.undone)}</div>` : '') +
           `<div style="display:flex;gap:8px;margin-top:4px">` +
@@ -1139,10 +1283,12 @@
     function viewDetail(id) {
       const r = getRecords().find(x => x.id === id);
       if (!r) return;
+      currentPrintRecord = id;
       currentPrintRecord = id;  // 印刷対象として記憶
 
       const rows = [
         ['日付',         r.date],
+        ['対象者',       r.subject || '旦'],
         ['開始',         r.start],
         ['終了',         r.end],
         ['事業所',       r.office],
@@ -1162,6 +1308,14 @@
         ['脈拍',         r.pulse ? r.pulse + ' 回/分' : ''],
         ['母親の体調',   r.mom],
         ['母親特記',     r.mom_note],
+        /* 早南江専用 */
+        ['体調（早南江）',          r.s_condition],
+        ['気分（早南江）',          r.s_mood],
+        ['食事（早南江）',          r.s_food],
+        ['動悸・胸部症状',          r.s_cardiac ? r.s_cardiac + (r.cardiac_note ? '：' + r.cardiac_note : '') : ''],
+        ['腰痛・股関節痛（右）',    r.s_pain_joint ? r.s_pain_joint + (r.joint_note ? '：' + r.joint_note : '') : ''],
+        ['疼痛・痺れ（早南江）',    r.s_pain ? r.s_pain + (r.spain_note ? '：' + r.spain_note : '') : ''],
+        ['転倒・ヒヤリ（早南江）',  r.s_fall ? r.s_fall + (r.sfall_note ? '：' + r.sfall_note : '') : ''],
         ['実施サービス', (r.done || []).join('、')],
         ['未実施・理由', r.undone],
         ['処方薬変更',   r.rx],
@@ -1204,7 +1358,6 @@
 
     // 現在モーダルに表示中の記録IDを保持
     let currentPrintRecord = null;
-    let editingId = null;  // 編集中の記録ID（nullなら新規入力モード）
 
     function row(key, val) {
       if (!val) return '';
@@ -1236,7 +1389,8 @@
                    : svc === '就労支援特別事業' ? 'p-sec-work'
                    : 'p-sec-helper';
 
-      let html = '<h1>引き継ぎ連絡票</h1>';
+      const isSanae = (r.subject || '旦') === '早南江';
+      let html = '<h1>引き継ぎ連絡票　対象：' + escHtml(r.subject || '旦') + '</h1>';
 
       /* ── 基本情報（共通） ── */
       html += '<div class="p-section">' +
@@ -1260,23 +1414,38 @@
         '</tr>' +
         '</table></div>';
 
-      /* ── 本人の状態（ヘルパー記入） ── */
-      const visionStr = [r.vision, r.vision_note].filter(Boolean).join('　');
-      const painStr   = r.pain === 'あり' && r.pain_note
-                        ? 'あり：' + r.pain_note : (r.pain || '');
-      const fallStr   = r.fall === 'あり' && r.fall_note
-                        ? 'あり：' + r.fall_note : (r.fall || '');
-
-      html += '<div class="p-section">' +
-        secBar('ヘルパー記入　本人の状態', 'p-sec-helper') +
-        '<table class="p-table">' +
-        row('体調全般',     r.condition) +
-        row('気分・精神状態', r.mood) +
-        row('食事・水分摂取', r.food) +
-        row('疼痛・痺れ等',  painStr) +
-        row('転倒・ヒヤリ',  fallStr) +
-        row('見えにくさ・視覚的困りごと', visionStr) +
-        '</table></div>';
+      /* ── 本人の状態（対象者で切り替え） ── */
+      if (!isSanae) {
+        const visionStr = [r.vision, r.vision_note].filter(Boolean).join('　');
+        const painStr   = r.pain === 'あり' && r.pain_note ? 'あり：' + r.pain_note : (r.pain || '');
+        const fallStr   = r.fall === 'あり' && r.fall_note ? 'あり：' + r.fall_note : (r.fall || '');
+        html += '<div class="p-section">' +
+          secBar('ヘルパー記入　本人の状態（旦）', 'p-sec-helper') +
+          '<table class="p-table">' +
+          row('体調全般',     r.condition) +
+          row('気分・精神状態', r.mood) +
+          row('食事・水分摂取', r.food) +
+          row('疼痛・痺れ等',  painStr) +
+          row('転倒・ヒヤリ',  fallStr) +
+          row('見えにくさ・視覚的困りごと', visionStr) +
+          '</table></div>';
+      } else {
+        const cardiacStr   = r.s_cardiac === 'あり' && r.cardiac_note ? 'あり：' + r.cardiac_note : (r.s_cardiac || '');
+        const jointStr     = r.s_pain_joint ? r.s_pain_joint + (r.joint_note ? '：' + r.joint_note : '') : '';
+        const spainStr     = r.s_pain === 'あり' && r.spain_note ? 'あり：' + r.spain_note : (r.s_pain || '');
+        const sfallStr     = r.s_fall === 'あり' && r.sfall_note ? 'あり：' + r.sfall_note : (r.s_fall || '');
+        html += '<div class="p-section">' +
+          secBar('ヘルパー記入　本人の状態（早南江）', 'p-sec-helper') +
+          '<table class="p-table">' +
+          row('体調全般',             r.s_condition) +
+          row('気分・精神状態',       r.s_mood) +
+          row('食事・水分摂取',       r.s_food) +
+          row('動悸・胸部症状',       cardiacStr) +
+          row('腰痛・股関節痛（右）', jointStr) +
+          row('疼痛・痺れ等',         spainStr) +
+          row('転倒・ヒヤリ',         sfallStr) +
+          '</table></div>';
+      }
 
       /* ── バイタル（医療職記入）── 非表示なら出力しない */
       if (showVital) {
@@ -1291,7 +1460,7 @@
       }
 
       /* ── 母親の状態（ヘルパー記入）── 非表示なら出力しない */
-      if (showHaha) {
+      if (showHaha && !isSanae) {
         const momStr = [r.mom, r.mom_note].filter(Boolean).join('　');
         html += '<div class="p-section">' +
           secBar('ヘルパー記入　母親の状態', 'p-sec-helper') +
@@ -1343,15 +1512,17 @@
       setTimeout(() => window.print(), 150);
     }
 
-    /* ─── 編集 ───────────────────────────────────── */
+    /* ─── 編集モード状態 ──────────────────────────── */
+    let editingId = null;
+    let currentPrintRecord = null;
+
+    /* ─── 編集 ─────────────────────────────────────── */
     function editRecord(id) {
       const r = getRecords().find(x => x.id === id);
       if (!r) return;
-
-      // 編集モードをセット
       editingId = id;
+      currentPrintRecord = id;
 
-      // フォームに既存データを読み込む
       const form = document.getElementById('record-form');
       form.reset();
 
@@ -1362,27 +1533,30 @@
       document.getElementById('f-office').value = r.office || '';
       document.getElementById('f-staff').value  = r.staff  || '';
 
-      // ラジオ・チェックボックスの復元ヘルパー
       function setRadio(name, val) {
         if (!val) return;
         const el = form.querySelector(`input[name="${name}"][value="${CSS.escape(val)}"]`);
         if (el) el.checked = true;
       }
 
-      // サービス種別（先に選択してupdateDoneChecksを呼ぶ）
-      setRadio('svctype', r.svctype);
-      updateDoneChecks();  // 実施内容チェック項目とセクション表示を更新
+      // 対象者を先に選択してフォーム表示を更新
+      setRadio('subject', r.subject || '旦');
+      updateSubject();
 
-      // 本人の状態
+      // サービス種別を選択して実施内容を更新
+      setRadio('svctype', r.svctype);
+      updateDoneChecks();
+
+      // 旦用フィールド
       setRadio('condition', r.condition);
       setRadio('mood',      r.mood);
       setRadio('food',      r.food);
       setRadio('pain',      r.pain);
-      document.getElementById('f-pain-note').value   = r.pain_note   || '';
+      if (document.getElementById('f-pain-note'))   document.getElementById('f-pain-note').value   = r.pain_note   || '';
       setRadio('fall', r.fall);
-      document.getElementById('f-fall-note').value   = r.fall_note   || '';
+      if (document.getElementById('f-fall-note'))   document.getElementById('f-fall-note').value   = r.fall_note   || '';
       setRadio('vision', r.vision);
-      document.getElementById('f-vision-note').value = r.vision_note || '';
+      if (document.getElementById('f-vision-note')) document.getElementById('f-vision-note').value = r.vision_note || '';
 
       // バイタル
       document.getElementById('f-temp').value  = r.temp  || '';
@@ -1392,9 +1566,9 @@
 
       // 母親の状態
       setRadio('mom', r.mom);
-      document.getElementById('f-mom-note').value = r.mom_note || '';
+      if (document.getElementById('f-mom-note')) document.getElementById('f-mom-note').value = r.mom_note || '';
 
-      // 実施内容（updateDoneChecks後にチェックを入れる）
+      // 実施内容
       (r.done || []).forEach(val => {
         const cb = form.querySelector(`input[name="done"][value="${CSS.escape(val)}"]`);
         if (cb) cb.checked = true;
@@ -1403,20 +1577,32 @@
 
       // 医療・投薬
       setRadio('rx', r.rx);
-      document.getElementById('f-rx-note').value = r.rx_note || '';
+      if (document.getElementById('f-rx-note')) document.getElementById('f-rx-note').value = r.rx_note || '';
 
       // 申し送り
       document.getElementById('f-okuri').value = r.okuri || '';
 
-      // フォームタイトルと保存ボタンを編集モード表示に切り替え
-      document.getElementById('form-mode-label').textContent =
-        '記録を編集中（' + r.date + '　' + (r.svctype || '') + '）';
-      document.getElementById('save-btn').textContent = '変更を保存する';
+      // 早南江専用フィールド
+      setRadio('s_condition',  r.s_condition);
+      setRadio('s_mood',       r.s_mood);
+      setRadio('s_food',       r.s_food);
+      setRadio('s_cardiac',    r.s_cardiac);
+      if (document.getElementById('f-cardiac-note')) document.getElementById('f-cardiac-note').value = r.cardiac_note || '';
+      setRadio('s_pain_joint', r.s_pain_joint);
+      if (document.getElementById('f-joint-note'))   document.getElementById('f-joint-note').value   = r.joint_note   || '';
+      setRadio('s_pain',       r.s_pain);
+      if (document.getElementById('f-spain-note'))   document.getElementById('f-spain-note').value   = r.spain_note   || '';
+      setRadio('s_fall',       r.s_fall);
+      if (document.getElementById('f-sfall-note'))   document.getElementById('f-sfall-note').value   = r.sfall_note   || '';
 
-      // 入力画面へ移動
+      // フォームUI を編集モードに
+      const lbl = document.getElementById('form-mode-label');
+      if (lbl) lbl.textContent = '記録を編集中（' + r.date + '　' + (r.subject || '旦') + '　' + (r.svctype || '') + '）';
+      const btn = document.getElementById('save-btn');
+      if (btn) btn.textContent = '変更を保存する';
+
       showPage('form');
-      announce('編集モードです。' + r.date + '　' + (r.svctype || '') +
-               'の記録を読み込みました。修正後、変更を保存するボタンを押してください。');
+      announce('編集モードです。' + r.date + '　' + (r.subject || '旦') + '　' + (r.svctype || '') + 'の記録を読み込みました。修正後、変更を保存するボタンを押してください。');
     }
 
     /* ─── 削除 ───────────────────────────────────── */
@@ -1452,6 +1638,7 @@
         end:       document.getElementById('f-end').value,
         office:    document.getElementById('f-office').value.trim(),
         staff:     document.getElementById('f-staff').value.trim(),
+        subject:   valOf(form, 'subject') || '旦',
         svctype:   svcSel ? svcSel.value : '',
         condition: valOf(form, 'condition'),
         mood:      valOf(form, 'mood'),
@@ -1462,6 +1649,18 @@
         fall_note: document.getElementById('f-fall-note').value.trim(),
         vision:    valOf(form, 'vision'),
         vision_note: document.getElementById('f-vision-note').value.trim(),
+        /* 早南江専用フィールド */
+        s_condition:  valOf(form, 's_condition'),
+        s_mood:       valOf(form, 's_mood'),
+        s_food:       valOf(form, 's_food'),
+        s_cardiac:    valOf(form, 's_cardiac'),
+        cardiac_note: document.getElementById('f-cardiac-note') ? document.getElementById('f-cardiac-note').value.trim() : '',
+        s_pain_joint: valOf(form, 's_pain_joint'),
+        joint_note:   document.getElementById('f-joint-note') ? document.getElementById('f-joint-note').value.trim() : '',
+        s_pain:       valOf(form, 's_pain'),
+        spain_note:   document.getElementById('f-spain-note') ? document.getElementById('f-spain-note').value.trim() : '',
+        s_fall:       valOf(form, 's_fall'),
+        sfall_note:   document.getElementById('f-sfall-note') ? document.getElementById('f-sfall-note').value.trim() : '',
         temp:      document.getElementById('f-temp').value.trim(),
         bph:       document.getElementById('f-bph').value.trim(),
         bpl:       document.getElementById('f-bpl').value.trim(),
@@ -1477,29 +1676,72 @@
 
       const records = getRecords();
       if (editingId) {
-        // 編集モード：既存記録を上書き（idとsavedAtは元のものを保持）
         const idx = records.findIndex(x => x.id === editingId);
         if (idx !== -1) {
-          rec.id      = records[idx].id;
-          rec.savedAt = records[idx].savedAt;  // 元の日時を維持
-          rec.editedAt = Date.now();            // 編集日時を記録
+          rec.id       = records[idx].id;
+          rec.savedAt  = records[idx].savedAt;
+          rec.editedAt = Date.now();
           records[idx] = rec;
         }
         saveRecords(records);
         announce('記録を更新しました。');
       } else {
-        // 新規入力モード
         records.push(rec);
         saveRecords(records);
         announce('記録を保存しました。ホーム画面に最新の申し送り事項が表示されます。');
       }
       clearForm();
-      showPage(editingId ? 'log' : 'home');  // 編集後は過去ログに戻る
+      showPage(editingId ? 'log' : 'home');
     }
 
     function valOf(form, name) {
       const el = form.querySelector(`input[name="${name}"]:checked`);
       return el ? el.value : '';
+    }
+
+    /* ─── 対象者連動：フォーム切り替え ────────────────── */
+    function updateSubject() {
+      const form    = document.getElementById('record-form');
+      const subjSel = form.querySelector('input[name="subject"]:checked');
+      const subj    = subjSel ? subjSel.value : '旦';
+      const isSanae = subj === '早南江';
+
+      // 旦用・早南江用の本人状態セクションを切り替え
+      const danSec   = document.getElementById('sec-honnin');
+      const sanaeSec = document.getElementById('sec-honnin-sanae');
+      danSec.style.display   = isSanae ? 'none' : '';
+      sanaeSec.style.display = isSanae ? '' : 'none';
+
+      // 旦用セクション内inputのdisabled制御
+      danSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = isSanae; });
+      sanaeSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = !isSanae; });
+
+      // 母親の状態セクションは早南江の場合は非表示
+      const hahaSec = document.getElementById('sec-haha');
+      if (hahaSec) {
+        hahaSec.style.display = isSanae ? 'none' : '';
+        hahaSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = isSanae; });
+      }
+
+      // サービス種別の表示切り替え（旦専用・早南江専用）
+      document.querySelectorAll('.svc-dan-only').forEach(el => {
+        el.style.display = isSanae ? 'none' : '';
+        const inp = el.querySelector('input');
+        if (inp) { inp.disabled = isSanae; if (isSanae && inp.checked) inp.checked = false; }
+      });
+      document.querySelectorAll('.svc-sanae-only').forEach(el => {
+        el.style.display = isSanae ? '' : 'none';
+        const inp = el.querySelector('input');
+        if (inp) { inp.disabled = !isSanae; if (!isSanae && inp.checked) inp.checked = false; }
+      });
+
+      // サービス種別選択をリセットして実施内容も更新
+      form.querySelectorAll('input[name="svctype"]').forEach(el => el.checked = false);
+      updateDoneChecks();
+
+      announce(isSanae
+        ? '早南江さんの記録モードに切り替えました。'
+        : '旦さんの記録モードに切り替えました。');
     }
 
     /* ─── サービス種別連動：実施内容チェック項目切り替え ── */
@@ -1547,6 +1789,14 @@
       '訪問リハビリ': [
         '関節可動域訓練', '筋力訓練', '歩行・移動訓練',
         'ADL訓練', '姿勢・ポジショニング指導', '家族指導', 'その他'
+      ],
+      // ── 通院介助（早南江専用） ────────────────────────────────
+      '通院介助': [
+        '通院付き添い・移動介助',
+        '院内での介助・サポート',
+        '処方箋・薬局対応',
+        '検査・処置への同席',
+        'その他'
       ],
       // ── 就労支援特別事業（雇用施策連携・重度障害者等就労支援） ─
       // 根拠：雇用施策との連携による重度障害者等就労支援特別事業
@@ -1624,11 +1874,13 @@
       document.getElementById('record-form').reset();
       document.getElementById('f-date').value =
         new Date().toISOString().slice(0, 10);
-      updateDoneChecks();  // チェック項目のリセットとセクション表示の初期化を兼ねる
-      // 編集モードを解除してUIを新規入力モードに戻す
       editingId = null;
-      document.getElementById('form-mode-label').textContent = '';
-      document.getElementById('save-btn').textContent = '記録を保存する';
+      const lbl = document.getElementById('form-mode-label');
+      if (lbl) lbl.textContent = '';
+      const btn = document.getElementById('save-btn');
+      if (btn) btn.textContent = '記録を保存する';
+      updateSubject();     // 対象者リセット（旦に戻す）とフォーム表示の初期化
+      updateDoneChecks();  // チェック項目のリセットとセクション表示の初期化を兼ねる
       announce('フォームをクリアしました。サービス種別を選択すると関係のない入力欄が非表示になります。');
     }
 
