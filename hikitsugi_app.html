@@ -1105,7 +1105,7 @@
         { time: '11:30–12:30', svc: '訪問診療（第1・3木）' },
       ],
       5: [
-        { time: '9:00–9:30',  svc: '訪問服薬指導（第1・3金）' },
+        { time: '9:00–10:00',  svc: '訪問服薬指導（第1・3金）' },
         { time: '12:50–13:50', svc: '入浴介助' },
         { time: '13:50–14:50', svc: '家事援助' },
         { time: '16:00–16:30', svc: '訪問鍼灸' },
@@ -1283,7 +1283,6 @@
     function viewDetail(id) {
       const r = getRecords().find(x => x.id === id);
       if (!r) return;
-      currentPrintRecord = id;
       currentPrintRecord = id;  // 印刷対象として記憶
 
       const rows = [
@@ -1514,7 +1513,6 @@
 
     /* ─── 編集モード状態 ──────────────────────────── */
     let editingId = null;
-    let currentPrintRecord = null;
 
     /* ─── 編集 ─────────────────────────────────────── */
     function editRecord(id) {
@@ -1735,8 +1733,7 @@
         if (inp) { inp.disabled = !isSanae; if (!isSanae && inp.checked) inp.checked = false; }
       });
 
-      // サービス種別選択をリセットして実施内容も更新
-      form.querySelectorAll('input[name="svctype"]').forEach(el => el.checked = false);
+      // サービス種別の実施内容を更新（選択状態はリセットしない）
       updateDoneChecks();
 
       announce(isSanae
@@ -1963,6 +1960,7 @@
     /* ─── 初期化 ─────────────────────────────────── */
     document.getElementById('f-date').value =
       new Date().toISOString().slice(0, 10);
+    updateSubject();   // 対象者「旦」で初期化（早南江専用要素を非表示に）
     renderHome();
   </script>
 </body>
