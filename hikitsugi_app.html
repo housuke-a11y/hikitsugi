@@ -1714,12 +1714,8 @@
       danSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = isSanae; });
       sanaeSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = !isSanae; });
 
-      // 母親の状態セクションは早南江の場合は非表示
-      const hahaSec = document.getElementById('sec-haha');
-      if (hahaSec) {
-        hahaSec.style.display = isSanae ? 'none' : '';
-        hahaSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = isSanae; });
-      }
+      // ※ 母親の状態（sec-haha）はupdateDoneChecks()が
+      //   対象者×サービス種別の2条件で制御するためここでは触らない
 
       // サービス種別の表示切り替え（旦専用・早南江専用）
       document.querySelectorAll('.svc-dan-only').forEach(el => {
@@ -1828,26 +1824,43 @@
       // ── セクション表示制御 ──────────────────────────────────────
       // サービス種別ごとに表示するセクションを定義
       // キー：セクションid  値：表示するサービス種別の配列（空配列＝全種別で表示）
-      const SECTION_RULES = {
-        'sec-honnin':  [],  // 全種別で表示
+      // ── サービス種別によるセクション表示制御 ──────────────────
+      // sec-honnin / sec-honnin-sanae / sec-haha は
+      // updateSubject() が対象者ベースで管理するため、ここでは触らない
+      // ただし sec-haha はさらにサービス種別でも制御が必要
+      const form2 = document.getElementById('record-form');
+      const subjSel2 = form2.querySelector('input[name="subject"]:checked');
+      const currentSubj = subjSel2 ? subjSel2.value : '旦';
+      const isSanaeNow  = currentSubj === '早南江';
+
+      // バイタル・実施内容・医療投薬はサービス種別で制御
+      const SVC_RULES = {
         'sec-vital':   ['訪問看護', '訪問診療', '訪問リハビリ'],
-        'sec-haha':    ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
-                        '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
         'sec-jisshi':  [],  // 全種別で表示
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
       };
 
-      Object.entries(SECTION_RULES).forEach(([secId, svcs]) => {
+      Object.entries(SVC_RULES).forEach(([secId, svcs]) => {
         const el = document.getElementById(secId);
         if (!el) return;
         const show = svcs.length === 0 || svcs.includes(svc) || svc === '';
         el.style.display = show ? '' : 'none';
-        // 非表示セクション内のinput/select/textareaをdisabledにして
-        // 保存時に誤ってデータが入らないようにする
         el.querySelectorAll('input, select, textarea').forEach(inp => {
           inp.disabled = !show;
         });
       });
+
+      // 母親の状態：旦かつ対象サービスのときのみ表示
+      const hahaSvc = ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
+                       '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'];
+      const hahaEl = document.getElementById('sec-haha');
+      if (hahaEl) {
+        const showHaha = !isSanaeNow && (hahaSvc.includes(svc) || svc === '');
+        hahaEl.style.display = showHaha ? '' : 'none';
+        hahaEl.querySelectorAll('input, select, textarea').forEach(inp => {
+          inp.disabled = !showHaha;
+        });
+      }
 
       // VoiceOver向けアナウンス
       const secNames = {
