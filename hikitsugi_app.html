@@ -611,6 +611,10 @@
 
       <form id="record-form" onsubmit="saveRecord(event)" novalidate>
 
+        <!-- 編集モード表示ラベル -->
+        <div id="form-mode-label" role="status" aria-live="polite"
+             style="font-size:0.875rem;font-weight:600;color:var(--danger);padding:6px 10px;margin-bottom:4px;min-height:1.5em"></div>
+
         <!-- 基本情報（共通） -->
         <div class="card">
           <div class="sec-bar sec-common" role="heading" aria-level="2">共　通　基本情報</div>
@@ -875,7 +879,7 @@
           <button type="button" class="btn-secondary" onclick="clearForm()">
             クリア
           </button>
-          <button type="submit" class="btn-primary" style="flex:1">
+          <button type="submit" id="save-btn" class="btn-primary" style="flex:1">
             記録を保存する
           </button>
         </div>
@@ -1121,6 +1125,9 @@
           `<button class="btn-secondary" style="font-size:0.875rem;padding:7px 12px"` +
           ` onclick='viewDetail("${escAttr(r.id)}")'` +
           ` aria-label="${escHtml(r.date)}の記録を詳細表示">詳細</button>` +
+          `<button class="btn-secondary" style="font-size:0.875rem;padding:7px 12px"` +
+          ` onclick='editRecord("${escAttr(r.id)}")'` +
+          ` aria-label="${escHtml(r.date)}の記録を編集">編集</button>` +
           `<button class="btn-danger" style="font-size:0.875rem;padding:7px 12px"` +
           ` onclick='deleteRecord("${escAttr(r.id)}")'` +
           ` aria-label="${escHtml(r.date)}の記録を削除">削除</button>` +
@@ -1197,6 +1204,7 @@
 
     // 現在モーダルに表示中の記録IDを保持
     let currentPrintRecord = null;
+    let editingId = null;  // 編集中の記録ID（nullなら新規入力モード）
 
     function row(key, val) {
       if (!val) return '';
@@ -1335,6 +1343,82 @@
       setTimeout(() => window.print(), 150);
     }
 
+    /* ─── 編集 ───────────────────────────────────── */
+    function editRecord(id) {
+      const r = getRecords().find(x => x.id === id);
+      if (!r) return;
+
+      // 編集モードをセット
+      editingId = id;
+
+      // フォームに既存データを読み込む
+      const form = document.getElementById('record-form');
+      form.reset();
+
+      // 基本情報
+      document.getElementById('f-date').value   = r.date   || '';
+      document.getElementById('f-start').value  = r.start  || '';
+      document.getElementById('f-end').value    = r.end    || '';
+      document.getElementById('f-office').value = r.office || '';
+      document.getElementById('f-staff').value  = r.staff  || '';
+
+      // ラジオ・チェックボックスの復元ヘルパー
+      function setRadio(name, val) {
+        if (!val) return;
+        const el = form.querySelector(`input[name="${name}"][value="${CSS.escape(val)}"]`);
+        if (el) el.checked = true;
+      }
+
+      // サービス種別（先に選択してupdateDoneChecksを呼ぶ）
+      setRadio('svctype', r.svctype);
+      updateDoneChecks();  // 実施内容チェック項目とセクション表示を更新
+
+      // 本人の状態
+      setRadio('condition', r.condition);
+      setRadio('mood',      r.mood);
+      setRadio('food',      r.food);
+      setRadio('pain',      r.pain);
+      document.getElementById('f-pain-note').value   = r.pain_note   || '';
+      setRadio('fall', r.fall);
+      document.getElementById('f-fall-note').value   = r.fall_note   || '';
+      setRadio('vision', r.vision);
+      document.getElementById('f-vision-note').value = r.vision_note || '';
+
+      // バイタル
+      document.getElementById('f-temp').value  = r.temp  || '';
+      document.getElementById('f-bph').value   = r.bph   || '';
+      document.getElementById('f-bpl').value   = r.bpl   || '';
+      document.getElementById('f-pulse').value = r.pulse || '';
+
+      // 母親の状態
+      setRadio('mom', r.mom);
+      document.getElementById('f-mom-note').value = r.mom_note || '';
+
+      // 実施内容（updateDoneChecks後にチェックを入れる）
+      (r.done || []).forEach(val => {
+        const cb = form.querySelector(`input[name="done"][value="${CSS.escape(val)}"]`);
+        if (cb) cb.checked = true;
+      });
+      document.getElementById('f-undone').value = r.undone || '';
+
+      // 医療・投薬
+      setRadio('rx', r.rx);
+      document.getElementById('f-rx-note').value = r.rx_note || '';
+
+      // 申し送り
+      document.getElementById('f-okuri').value = r.okuri || '';
+
+      // フォームタイトルと保存ボタンを編集モード表示に切り替え
+      document.getElementById('form-mode-label').textContent =
+        '記録を編集中（' + r.date + '　' + (r.svctype || '') + '）';
+      document.getElementById('save-btn').textContent = '変更を保存する';
+
+      // 入力画面へ移動
+      showPage('form');
+      announce('編集モードです。' + r.date + '　' + (r.svctype || '') +
+               'の記録を読み込みました。修正後、変更を保存するボタンを押してください。');
+    }
+
     /* ─── 削除 ───────────────────────────────────── */
     function deleteRecord(id) {
       if (!confirm('この記録を削除しますか？\nこの操作は元に戻せません。')) return;
@@ -1392,11 +1476,25 @@
       };
 
       const records = getRecords();
-      records.push(rec);
-      saveRecords(records);
-      announce('記録を保存しました。ホーム画面に最新の申し送り事項が表示されます。');
+      if (editingId) {
+        // 編集モード：既存記録を上書き（idとsavedAtは元のものを保持）
+        const idx = records.findIndex(x => x.id === editingId);
+        if (idx !== -1) {
+          rec.id      = records[idx].id;
+          rec.savedAt = records[idx].savedAt;  // 元の日時を維持
+          rec.editedAt = Date.now();            // 編集日時を記録
+          records[idx] = rec;
+        }
+        saveRecords(records);
+        announce('記録を更新しました。');
+      } else {
+        // 新規入力モード
+        records.push(rec);
+        saveRecords(records);
+        announce('記録を保存しました。ホーム画面に最新の申し送り事項が表示されます。');
+      }
       clearForm();
-      showPage('home');
+      showPage(editingId ? 'log' : 'home');  // 編集後は過去ログに戻る
     }
 
     function valOf(form, name) {
@@ -1527,6 +1625,10 @@
       document.getElementById('f-date').value =
         new Date().toISOString().slice(0, 10);
       updateDoneChecks();  // チェック項目のリセットとセクション表示の初期化を兼ねる
+      // 編集モードを解除してUIを新規入力モードに戻す
+      editingId = null;
+      document.getElementById('form-mode-label').textContent = '';
+      document.getElementById('save-btn').textContent = '記録を保存する';
       announce('フォームをクリアしました。サービス種別を選択すると関係のない入力欄が非表示になります。');
     }
 
