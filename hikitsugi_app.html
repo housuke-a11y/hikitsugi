@@ -189,6 +189,13 @@
       background: var(--surface);
       color: var(--txt);
       min-height: 44px;       /* タッチターゲット */
+    }
+
+    /* appearance:none はselectのみに適用 */
+    /* date/timeに適用するとiOS Safariでピッカーが開かなくなるため除外 */
+    input[type="text"],
+    select,
+    textarea {
       appearance: none;
       -webkit-appearance: none;
     }
