@@ -668,8 +668,10 @@
 
           <div class="field">
             <label for="f-office">事業所名</label>
-            <input type="text" id="f-office" name="office"
-                   placeholder="事業所名を入力" autocomplete="organization">
+            <select id="f-office" name="office"
+                    aria-label="事業所名を選択してください">
+              <option value="">-- 選択してください --</option>
+            </select>
           </div>
 
           <div class="field">
@@ -1535,8 +1537,9 @@
       document.getElementById('f-date').value   = r.date   || '';
       document.getElementById('f-start').value  = r.start  || '';
       document.getElementById('f-end').value    = r.end    || '';
-      document.getElementById('f-office').value = r.office || '';
       document.getElementById('f-staff').value  = r.staff  || '';
+      // f-office はupdateSubject()→updateOffice()で選択肢が再構築されるため
+      // updateSubject呼び出し後に値をセットする（後述）
 
       function setRadio(name, val) {
         if (!val) return;
@@ -1544,9 +1547,12 @@
         if (el) el.checked = true;
       }
 
-      // 対象者を先に選択してフォーム表示を更新
+      // 対象者を先に選択してフォーム表示・事業所選択肢を更新
       setRadio('subject', r.subject || '旦');
       updateSubject();
+      // updateOffice後に事業所名の選択値を復元
+      const officeEl = document.getElementById('f-office');
+      if (officeEl) officeEl.value = r.office || '';
 
       // サービス種別を選択して実施内容を更新
       setRadio('svctype', r.svctype);
@@ -1705,6 +1711,52 @@
     }
 
     /* ─── 対象者連動：フォーム切り替え ────────────────── */
+    /* ─── 事業所データ ───────────────────────────── */
+    const OFFICES = {
+      // 旦のみ利用
+      dan: [
+        { value: '日本ブラインドサッカー協会', label: '日本ブラインドサッカー協会' },
+        { value: 'ビーフラット',               label: 'ビーフラット' },
+        { value: 'まるかケア',                 label: 'まるかケア' },
+        { value: '中央区立福祉センター',       label: '中央区立福祉センター' },
+      ],
+      // 早南江のみ利用
+      sanae: [
+        { value: '晴海苑', label: '晴海苑' },
+      ],
+      // 両方が利用
+      both: [
+        { value: '総合介護サービス',                     label: '総合介護サービス' },
+        { value: 'ケアリッツ月島',                       label: 'ケアリッツ月島' },
+        { value: '訪問介護事業所サクラ',                 label: '訪問介護事業所サクラ' },
+        { value: 'ベストリハ訪問看護ステーション銀座',   label: 'ベストリハ訪問看護ステーション銀座' },
+        { value: 'ベストリハ訪問看護ステーション四谷',   label: 'ベストリハ訪問看護ステーション四谷' },
+        { value: '大江戸江東クリニック',                 label: '大江戸江東クリニック' },
+        { value: 'コトブキ調剤薬局足立店',               label: 'コトブキ調剤薬局足立店' },
+        { value: '株式会社クラウドケア',                   label: '株式会社クラウドケア' },
+      ],
+    };
+
+    function updateOffice(subj, currentVal) {
+      const isSanae = subj === '早南江';
+      const sel = document.getElementById('f-office');
+      if (!sel) return;
+
+      // 対象者に応じた選択肢を組み立て
+      const options = [
+        ...OFFICES.both,
+        ...(isSanae ? OFFICES.sanae : OFFICES.dan),
+      ].sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+
+      sel.innerHTML =
+        '<option value="">-- 選択してください --</option>' +
+        options.map(o =>
+          `<option value="${escHtml(o.value)}"` +
+          (o.value === currentVal ? ' selected' : '') +
+          `>${escHtml(o.label)}</option>`
+        ).join('');
+    }
+
     function updateSubject() {
       const form    = document.getElementById('record-form');
       const subjSel = form.querySelector('input[name="subject"]:checked');
@@ -1739,9 +1791,13 @@
       // サービス種別の実施内容を更新（選択状態はリセットしない）
       updateDoneChecks();
 
+      // 事業所選択肢を対象者に合わせて更新（現在の選択値は保持）
+      const currentOffice = document.getElementById('f-office')?.value || '';
+      updateOffice(subj, currentOffice);
+
       announce(isSanae
-        ? '早南江さんの記録モードに切り替えました。'
-        : '旦さんの記録モードに切り替えました。');
+        ? '早南江さんの記録モードに切り替えました。事業所名の選択肢が切り替わりました。'
+        : '旦さんの記録モードに切り替えました。事業所名の選択肢が切り替わりました。');
     }
 
     /* ─── サービス種別連動：実施内容チェック項目切り替え ── */
