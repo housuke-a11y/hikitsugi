@@ -1523,8 +1523,32 @@
       if (!r) return;
 
       document.getElementById('print-area').innerHTML = buildPrintArea(r);
-      announce('印刷ダイアログを開きます');
-      setTimeout(() => window.print(), 150);
+
+      // PDF保存時のファイル名を「日付_開始時刻_担当者.pdf」にするため
+      // window.print()前後でdocument.titleを一時変更する
+      const datePart  = (r.date  || '').replace(/-/g, '');        // 例: 20250426
+      const timePart  = (r.start || '').replace(/:/g, '');        // 例: 1115
+      const staffPart = (r.staff || r.office || '').replace(/[/\\:*?"<>|\s]/g, '_'); // ファイル名不可文字を_に
+      const parts     = [datePart, timePart, staffPart].filter(Boolean);
+      const fileName  = parts.join('_') || '引き継ぎ連絡票';
+
+      const originalTitle  = document.title;
+      document.title = fileName;
+
+      announce('印刷ダイアログを開きます。PDFで保存するとファイル名は' + fileName + 'になります。');
+
+      setTimeout(() => {
+        window.print();
+        // 印刷ダイアログを閉じた後にtitleを元に戻す
+        // afterprint イベントで確実に復元
+        const restore = () => {
+          document.title = originalTitle;
+          window.removeEventListener('afterprint', restore);
+        };
+        window.addEventListener('afterprint', restore);
+        // afterprintが発火しないブラウザへの保険（3秒後に復元）
+        setTimeout(() => { document.title = originalTitle; }, 3000);
+      }, 150);
     }
 
     /* ─── 編集モード状態 ──────────────────────────── */
