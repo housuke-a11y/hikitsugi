@@ -535,7 +535,7 @@
       }
 
       /* バイタル行：横並び3列 */
-      .p-vital-row td { width: 33%; }
+      .p-vital-row td { width: 25%; }
 
       /* 申し送り欄：高さを確保 */
       .p-okuri-val {
@@ -910,6 +910,11 @@
               <input type="text" id="f-bpl" name="bpl"
                      inputmode="numeric" placeholder="80">
             </div>
+          </div>
+          <div class="field" style="max-width:50%">
+            <label for="f-spo2">酸素飽和度 SpO₂（%）</label>
+            <input type="text" id="f-spo2" name="spo2"
+                   inputmode="numeric" placeholder="98">
           </div>
         </div>
 
@@ -1314,6 +1319,7 @@
         ['体温',         r.temp ? r.temp + ' ℃' : ''],
         ['血圧',         (r.bph && r.bpl) ? r.bph + '/' + r.bpl + ' mmHg' : ''],
         ['脈拍',         r.pulse ? r.pulse + ' 回/分' : ''],
+        ['酸素飽和度',   r.spo2  ? r.spo2  + ' %'    : ''],
         ['母親の体調',   r.mom],
         ['母親特記',     r.mom_note],
         /* 早南江専用 */
@@ -1464,6 +1470,7 @@
           '<td class="p-key">体温</td><td class="p-val">' + escHtml(r.temp ? r.temp + ' ℃' : '') + '</td>' +
           '<td class="p-key">血圧</td><td class="p-val">' + escHtml(bpStr) + '</td>' +
           '<td class="p-key">脈拍</td><td class="p-val">' + escHtml(r.pulse ? r.pulse + ' 回/分' : '') + '</td>' +
+          '<td class="p-key">SpO₂</td><td class="p-val">' + escHtml(r.spo2 ? r.spo2 + ' %' : '') + '</td>' +
           '</tr></table></div>';
       }
 
@@ -1574,6 +1581,7 @@
       document.getElementById('f-bph').value   = r.bph   || '';
       document.getElementById('f-bpl').value   = r.bpl   || '';
       document.getElementById('f-pulse').value = r.pulse || '';
+      if (document.getElementById('f-spo2')) document.getElementById('f-spo2').value = r.spo2 || '';
 
       // 母親の状態
       setRadio('mom', r.mom);
@@ -1676,6 +1684,7 @@
         bph:       document.getElementById('f-bph').value.trim(),
         bpl:       document.getElementById('f-bpl').value.trim(),
         pulse:     document.getElementById('f-pulse').value.trim(),
+        spo2:      document.getElementById('f-spo2') ? document.getElementById('f-spo2').value.trim() : '',
         mom:       valOf(form, 'mom'),
         mom_note:  document.getElementById('f-mom-note').value.trim(),
         done:      doneCbs,
