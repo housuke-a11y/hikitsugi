@@ -633,7 +633,7 @@
 
         <!-- 基本情報（共通） -->
         <div class="card">
-          <div class="sec-bar sec-common" role="heading" aria-level="2">共　通　基本情報</div>
+          <div class="sec-bar sec-common" role="heading" aria-level="2">基本情報</div>
 
           <fieldset class="field" style="border:none;padding:0">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:6px">
@@ -704,7 +704,7 @@
 
         <!-- 本人の状態：旦 -->
         <div class="card" id="sec-honnin">
-          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態（旦）</div>
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">本人の状態（旦）</div>
 
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
@@ -786,7 +786,7 @@
 
         <!-- 本人の状態：早南江 -->
         <div class="card" id="sec-honnin-sanae" style="display:none">
-          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　本人の状態（早南江）</div>
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">本人の状態（早南江）</div>
 
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
@@ -883,7 +883,7 @@
 
         <!-- バイタル（医療職記入） -->
         <div class="card" id="sec-vital">
-          <div class="sec-bar sec-medical" role="heading" aria-level="2">医療職記入　バイタル記録</div>
+          <div class="sec-bar sec-medical" role="heading" aria-level="2">バイタル記録</div>
           <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
             空欄可。医療職が記入してください。
           </p>
@@ -920,7 +920,7 @@
 
         <!-- 母親の状態（ヘルパー記入） -->
         <div class="card" id="sec-haha">
-          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　母親の状態</div>
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">母親の状態</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調</legend>
             <div class="check-group grp-helper">
@@ -941,7 +941,7 @@
 
         <!-- 実施内容（ヘルパー記入） -->
         <div class="card" id="sec-jisshi">
-          <div class="sec-bar sec-helper" role="heading" aria-level="2">ヘルパー記入　実施内容</div>
+          <div class="sec-bar sec-helper" role="heading" aria-level="2">実施内容</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">
               実施したサービス（複数選択可）
@@ -973,7 +973,7 @@
 
         <!-- 医療・投薬関連（医療職記入） -->
         <div class="card" id="sec-iryo">
-          <div class="sec-bar sec-medical" role="heading" aria-level="2">医療職記入　医療・投薬関連</div>
+          <div class="sec-bar sec-medical" role="heading" aria-level="2">医療・投薬関連</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">処方薬の変更</legend>
             <div class="check-group grp-medical">
@@ -993,7 +993,7 @@
 
         <!-- 申し送り（共通） -->
         <div class="card">
-          <div class="sec-bar sec-common" role="heading" aria-level="2">共　通　申し送り・連絡事項</div>
+          <div class="sec-bar sec-common" role="heading" aria-level="2">申し送り・連絡事項</div>
           <p class="caution" role="note">
             緊急度の高い内容は冒頭に【要確認】と記入してください
           </p>
@@ -1408,7 +1408,7 @@
 
       /* ── 基本情報（共通） ── */
       html += '<div class="p-section">' +
-        secBar('共　通　基本情報', 'p-sec-common') +
+        secBar('基本情報', 'p-sec-common') +
         '<table class="p-table">' +
         '<tr>' +
           '<td class="p-key">日付・曜日</td>' +
@@ -1434,7 +1434,7 @@
         const painStr   = r.pain === 'あり' && r.pain_note ? 'あり：' + r.pain_note : (r.pain || '');
         const fallStr   = r.fall === 'あり' && r.fall_note ? 'あり：' + r.fall_note : (r.fall || '');
         html += '<div class="p-section">' +
-          secBar('ヘルパー記入　本人の状態（旦）', 'p-sec-helper') +
+          secBar('本人の状態（旦）', 'p-sec-helper') +
           '<table class="p-table">' +
           row('体調全般',     r.condition) +
           row('気分・精神状態', r.mood) +
@@ -1449,7 +1449,7 @@
         const spainStr     = r.s_pain === 'あり' && r.spain_note ? 'あり：' + r.spain_note : (r.s_pain || '');
         const sfallStr     = r.s_fall === 'あり' && r.sfall_note ? 'あり：' + r.sfall_note : (r.s_fall || '');
         html += '<div class="p-section">' +
-          secBar('ヘルパー記入　本人の状態（早南江）', 'p-sec-helper') +
+          secBar('本人の状態（早南江）', 'p-sec-helper') +
           '<table class="p-table">' +
           row('体調全般',             r.s_condition) +
           row('気分・精神状態',       r.s_mood) +
@@ -1465,7 +1465,7 @@
       if (showVital) {
         const bpStr = (r.bph && r.bpl) ? r.bph + '/' + r.bpl + ' mmHg' : '';
         html += '<div class="p-section">' +
-          secBar('医療職記入　バイタル記録', 'p-sec-medical') +
+          secBar('バイタル記録', 'p-sec-medical') +
           '<table class="p-table"><tr class="p-vital-row">' +
           '<td class="p-key">体温</td><td class="p-val">' + escHtml(r.temp ? r.temp + ' ℃' : '') + '</td>' +
           '<td class="p-key">血圧</td><td class="p-val">' + escHtml(bpStr) + '</td>' +
@@ -1478,7 +1478,7 @@
       if (showHaha && !isSanae) {
         const momStr = [r.mom, r.mom_note].filter(Boolean).join('　');
         html += '<div class="p-section">' +
-          secBar('ヘルパー記入　母親の状態', 'p-sec-helper') +
+          secBar('母親の状態', 'p-sec-helper') +
           '<table class="p-table">' +
           row('体調', momStr) +
           '</table></div>';
@@ -1486,7 +1486,7 @@
 
       /* ── 実施内容（ヘルパー記入） ── */
       html += '<div class="p-section">' +
-        secBar('ヘルパー記入　実施内容', 'p-sec-helper') +
+        secBar('実施内容', 'p-sec-helper') +
         '<table class="p-table">' +
         row('実施サービス', doneStr) +
         row('未実施・理由',  r.undone) +
@@ -1497,7 +1497,7 @@
         const rxStr = r.rx === 'あり' && r.rx_note
                       ? 'あり：' + r.rx_note : (r.rx || '');
         html += '<div class="p-section">' +
-          secBar('医療職記入　医療・投薬関連', 'p-sec-medical') +
+          secBar('医療・投薬関連', 'p-sec-medical') +
           '<table class="p-table">' +
           row('処方薬の変更', rxStr) +
           '</table></div>';
@@ -1505,7 +1505,7 @@
 
       /* ── 申し送り（共通） ── */
       html += '<div class="p-section">' +
-        secBar('共　通　申し送り・連絡事項（次の援助者へ）', 'p-sec-common') +
+        secBar('申し送り・連絡事項（次の援助者へ）', 'p-sec-common') +
         '<table class="p-table">' +
         '<tr><td class="p-val p-okuri-val" colspan="2">' +
         escHtml(r.okuri || '') + '</td></tr>' +
