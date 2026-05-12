@@ -692,11 +692,13 @@
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc3" value="訪問看護"><label for="svc3">訪問看護</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc4" value="訪問鍼灸"><label for="svc4">訪問鍼灸</label></div>
               <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
+              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc13" value="移動支援"><label for="svc13">移動支援</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc6" value="訪問診療"><label for="svc6">訪問診療</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc7" value="訪問服薬指導"><label for="svc7">訪問服薬指導</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
               <div class="check-item svc-sanae-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
               <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
+              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc12" value="モニタリング"><label for="svc12">モニタリング</label></div>
               <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc9" value="その他"><label for="svc9">その他</label></div>
             </div>
           </fieldset>
@@ -1037,11 +1039,13 @@
               <option>訪問看護</option>
               <option>訪問鍼灸</option>
               <option>同行援護</option>
+              <option>移動支援</option>
               <option>訪問診療</option>
               <option>訪問服薬指導</option>
               <option>訪問リハビリ</option>
               <option>通院介助</option>
               <option>就労支援特別事業</option>
+              <option>モニタリング</option>
               <option>その他</option>
             </select>
           </div>
@@ -1365,6 +1369,10 @@
     // サービス種別ごとに印刷するセクション（SECTION_RULESと同一定義）
     const PRINT_RULES = {
       vital:  ['訪問看護', '訪問診療', '訪問リハビリ'],
+      // モニタリングは実施内容・医療投薬を印刷しない
+      jisshi: ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
+               '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
+               '就労支援特別事業', 'その他'],
       haha:   ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
                '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
       iryo:   ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
@@ -1390,9 +1398,10 @@
 
     function buildPrintArea(r) {
       const svc     = r.svctype || '';
-      const showVital = PRINT_RULES.vital.includes(svc) || svc === '';
-      const showHaha  = PRINT_RULES.haha.includes(svc)  || svc === '';
-      const showIryo  = PRINT_RULES.iryo.includes(svc)  || svc === '';
+      const showVital  = PRINT_RULES.vital.includes(svc)  || svc === '';
+      const showJisshi = PRINT_RULES.jisshi.includes(svc) || svc === '';
+      const showHaha   = PRINT_RULES.haha.includes(svc)   || svc === '';
+      const showIryo   = PRINT_RULES.iryo.includes(svc)   || svc === '';
 
       // 時刻文字列
       const timeStr = [r.start, r.end].filter(Boolean).join(' ～ ');
@@ -1484,8 +1493,8 @@
           '</table></div>';
       }
 
-      /* ── 実施内容（ヘルパー記入） ── */
-      html += '<div class="p-section">' +
+      /* ── 実施内容（モニタリング時は非表示） ── */
+      if (showJisshi) html += '<div class="p-section">' +
         secBar('実施内容', 'p-sec-helper') +
         '<table class="p-table">' +
         row('実施サービス', doneStr) +
@@ -1879,6 +1888,19 @@
         '関節可動域訓練', '筋力訓練', '歩行・移動訓練',
         'ADL訓練', '姿勢・ポジショニング指導', '家族指導', 'その他'
       ],
+      // ── 移動支援（地域生活支援事業・旦専用）────────────
+      // 同行援護で時間数不足時・従事者不在時に利用
+      '移動支援': [
+        '外出付き添い・移動介助',
+        '通院同行（眼科）',
+        '通院同行（整形外科）',
+        '情報提供・代読・代筆',
+        '公共交通機関利用介助',
+        '待合室での介助・サポート',
+        '処方箋・薬局対応',
+        'その他'
+      ],
+
       // ── 通院介助（早南江専用） ────────────────────────────────
       '通院介助': [
         '通院付き添い・移動介助',
@@ -1890,6 +1912,14 @@
       // ── 就労支援特別事業（雇用施策連携・重度障害者等就労支援） ─
       // 根拠：雇用施策との連携による重度障害者等就労支援特別事業
       // 同行援護とは給付体系・事業所・従業者要件が異なるため別管理
+      // ── モニタリング（ケアマネジャー訪問）────────────────────
+      // 実施内容セクション自体を非表示にするため選択肢は最小限
+      'モニタリング': [
+        '利用者本人への聞き取り',
+        '家族への聞き取り',
+        'サービス実施状況の確認',
+        'その他'
+      ],
       '就労支援特別事業': [
         '営業付き添い・移動介助',
         '出張同行（交通機関利用含む）',
@@ -1932,7 +1962,10 @@
       // バイタル・実施内容・医療投薬はサービス種別で制御
       const SVC_RULES = {
         'sec-vital':   ['訪問看護', '訪問診療', '訪問リハビリ'],
-        'sec-jisshi':  [],  // 全種別で表示
+        // モニタリングは実施内容を非表示にする
+        'sec-jisshi':  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
+                        '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
+                        '就労支援特別事業', 'その他'],
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
       };
 
@@ -1965,10 +1998,12 @@
         '訪問看護':       '訪問看護（全セクション表示）',
         '訪問鍼灸':       '訪問鍼灸（バイタル・母親の状態は非表示）',
         '同行援護':       '同行援護（バイタル・母親の状態・医療投薬は非表示）',
+        '移動支援':       '移動支援（バイタル・母親の状態・医療投薬は非表示）',
         '訪問診療':       '訪問診療（全セクション表示）',
         '訪問服薬指導':   '訪問服薬指導（バイタルは非表示）',
         '訪問リハビリ':   '訪問リハビリ（医療投薬は非表示）',
         '就労支援特別事業': '就労支援特別事業（バイタル・母親の状態・医療投薬は非表示）',
+        'モニタリング':     'モニタリング（バイタル・実施内容・医療投薬は非表示）',
         '':               'サービス種別を選択してください',
       };
       announce('サービス種別を「' + (svc || '未選択') + '」に設定しました。' +
