@@ -1985,14 +1985,21 @@
       // バイタル・実施内容・医療投薬はサービス種別で制御
       const SVC_RULES = {
         'sec-vital':   ['訪問看護', '訪問診療', '訪問リハビリ'],
-        'sec-jisshi':  [],  // 全種別で表示
+        // モニタリングのみの場合は実施内容を非表示
+        // 空配列は「全種別で表示」を意味するため、モニタリング除外リストとして明示
+        'sec-jisshi':  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
+                        '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
+                        '就労支援特別事業', 'その他'],
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
       };
 
       Object.entries(SVC_RULES).forEach(([secId, svcs]) => {
         const el = document.getElementById(secId);
         if (!el) return;
-        const show = svcSels.length === 0 || svcs.some(s => svcSels.includes(s));
+        // svcs が空配列なら全種別で表示、それ以外は論理和チェック
+        const show = svcSels.length === 0 ||
+                     svcs.length === 0 ||
+                     svcs.some(s => svcSels.includes(s));
         el.style.display = show ? '' : 'none';
         el.querySelectorAll('input, select, textarea').forEach(inp => {
           inp.disabled = !show;
