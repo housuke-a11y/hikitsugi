@@ -682,24 +682,24 @@
 
           <fieldset class="field" style="border:none;padding:0">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:6px">
-              サービス種別
+              サービス種別（複数選択可）
             </legend>
             <div class="check-group grp-common"
-                 role="radiogroup" aria-label="サービス種別を1つ選択してください"
+                 role="group" aria-label="サービス種別を選択してください。複数選択可"
                  onchange="updateDoneChecks()">
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc1" value="家事援助"><label for="svc1">家事援助</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc2" value="入浴介助"><label for="svc2">入浴介助</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc3" value="訪問看護"><label for="svc3">訪問看護</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc4" value="訪問鍼灸"><label for="svc4">訪問鍼灸</label></div>
-              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
-              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc13" value="移動支援"><label for="svc13">移動支援</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc6" value="訪問診療"><label for="svc6">訪問診療</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc7" value="訪問服薬指導"><label for="svc7">訪問服薬指導</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
-              <div class="check-item svc-sanae-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
-              <div class="check-item svc-dan-only"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc12" value="モニタリング"><label for="svc12">モニタリング</label></div>
-              <div class="check-item"><input type="radio" name="svctype" onchange="updateDoneChecks()" id="svc9" value="その他"><label for="svc9">その他</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc1" value="家事援助"><label for="svc1">家事援助</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc2" value="入浴介助"><label for="svc2">入浴介助</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc3" value="訪問看護"><label for="svc3">訪問看護</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc4" value="訪問鍼灸"><label for="svc4">訪問鍼灸</label></div>
+              <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
+              <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc13" value="移動支援"><label for="svc13">移動支援</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc6" value="訪問診療"><label for="svc6">訪問診療</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc7" value="訪問服薬指導"><label for="svc7">訪問服薬指導</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
+              <div class="check-item svc-sanae-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
+              <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc12" value="モニタリング"><label for="svc12">モニタリング</label></div>
+              <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc9" value="その他"><label for="svc9">その他</label></div>
             </div>
           </fieldset>
         </div>
@@ -1039,13 +1039,11 @@
               <option>訪問看護</option>
               <option>訪問鍼灸</option>
               <option>同行援護</option>
-              <option>移動支援</option>
               <option>訪問診療</option>
               <option>訪問服薬指導</option>
               <option>訪問リハビリ</option>
               <option>通院介助</option>
               <option>就労支援特別事業</option>
-              <option>モニタリング</option>
               <option>その他</option>
             </select>
           </div>
@@ -1181,12 +1179,23 @@
     }
 
     /* ─── バッジHTML ─────────────────────────────── */
-    function svcBadge(svc) {
-      let cls;
-      if (MEDICAL_SVC.has(svc))         cls = 'badge-medical';
-      else if (svc === '就労支援特別事業') cls = 'badge-work';
-      else                               cls = 'badge-helper';
-      return `<span class="badge ${cls}">${escHtml(svc || '種別不明')}</span>`;
+    // svctype は配列または文字列（後方互換）
+    function normalizeSvc(svctype) {
+      if (!svctype) return [];
+      return Array.isArray(svctype) ? svctype : [svctype];
+    }
+
+    function svcBadge(svctype) {
+      const svcs = normalizeSvc(svctype);
+      if (svcs.length === 0) return '<span class="badge badge-helper">種別不明</span>';
+      return svcs.map(svc => {
+        let cls;
+        if (MEDICAL_SVC.has(svc))         cls = 'badge-medical';
+        else if (svc === '就労支援特別事業' || svc === '移動支援') cls = 'badge-work';
+        else if (svc === 'モニタリング')  cls = 'badge-common';
+        else                               cls = 'badge-helper';
+        return `<span class="badge ${cls}" style="margin-right:2px">${escHtml(svc)}</span>`;
+      }).join('');
     }
 
     /* ─── ホーム画面描画 ─────────────────────────── */
@@ -1255,7 +1264,7 @@
       const subject = document.getElementById('filter-subject').value;
 
       let records = getRecords();
-      if (type)    records = records.filter(r => r.svctype === type);
+      if (type)    records = records.filter(r => normalizeSvc(r.svctype).includes(type));
       if (subject) records = records.filter(r => (r.subject || '旦') === subject);
 
       records.sort((a, b) => {
@@ -1310,7 +1319,7 @@
         ['終了',         r.end],
         ['事業所',       r.office],
         ['担当者',       r.staff],
-        ['サービス種別', r.svctype],
+        ['サービス種別', normalizeSvc(r.svctype).join('・')],
         ['体調全般',     r.condition],
         ['気分・精神状態', r.mood],
         ['食事・水分摂取', r.food],
@@ -1368,14 +1377,12 @@
     /* ─── 印刷・PDF出力 ──────────────────────────── */
     // サービス種別ごとに印刷するセクション（SECTION_RULESと同一定義）
     const PRINT_RULES = {
-      vital:  ['訪問看護', '訪問診療', '訪問リハビリ'],
-      // モニタリングは実施内容・医療投薬を印刷しない
-      jisshi: ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
-               '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
-               '就労支援特別事業', 'その他'],
-      haha:   ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
-               '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
-      iryo:   ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
+      vital:   ['訪問看護', '訪問診療', '訪問リハビリ'],
+      jisshi:  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
+                '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助', '就労支援特別事業', 'その他'],
+      haha:    ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
+                '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
+      iryo:    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
     };
 
     // 現在モーダルに表示中の記録IDを保持
@@ -1397,18 +1404,20 @@
     }
 
     function buildPrintArea(r) {
-      const svc     = r.svctype || '';
-      const showVital  = PRINT_RULES.vital.includes(svc)  || svc === '';
-      const showJisshi = PRINT_RULES.jisshi.includes(svc) || svc === '';
-      const showHaha   = PRINT_RULES.haha.includes(svc)   || svc === '';
-      const showIryo   = PRINT_RULES.iryo.includes(svc)   || svc === '';
+      const svcs    = normalizeSvc(r.svctype);            // 配列
+      const svc     = svcs.join('・');                     // 表示用文字列
+      const hasAny  = (list) => list.some(s => svcs.includes(s)); // 論理和チェック
+      const showVital  = hasAny(PRINT_RULES.vital)  || svcs.length === 0;
+      const showHaha   = hasAny(PRINT_RULES.haha)   || svcs.length === 0;
+      const showIryo   = hasAny(PRINT_RULES.iryo)   || svcs.length === 0;
+      const showJisshi = hasAny(PRINT_RULES.jisshi) || svcs.length === 0;
 
       // 時刻文字列
       const timeStr = [r.start, r.end].filter(Boolean).join(' ～ ');
       // 実施サービス
       const doneStr = (r.done || []).join('　');
-      // バッジ用
-      const svcCls = MEDICAL_SVC.has(svc) ? 'p-sec-medical'
+      // バッジ用（複数種別を考慮）
+      const svcCls = svcs.some(s => MEDICAL_SVC.has(s)) ? 'p-sec-medical'
                    : svc === '就労支援特別事業' ? 'p-sec-work'
                    : 'p-sec-helper';
 
@@ -1594,8 +1603,11 @@
       const officeEl = document.getElementById('f-office');
       if (officeEl) officeEl.value = r.office || '';
 
-      // サービス種別を選択して実施内容を更新
-      setRadio('svctype', r.svctype);
+      // サービス種別を復元（配列または文字列の後方互換）
+      normalizeSvc(r.svctype).forEach(val => {
+        const cb = form.querySelector(`input[name="svctype"][value="${CSS.escape(val)}"]`);
+        if (cb) cb.checked = true;
+      });
       updateDoneChecks();
 
       // 旦用フィールド
@@ -1649,12 +1661,13 @@
 
       // フォームUI を編集モードに
       const lbl = document.getElementById('form-mode-label');
-      if (lbl) lbl.textContent = '記録を編集中（' + r.date + '　' + (r.subject || '旦') + '　' + (r.svctype || '') + '）';
+      const svcLabel = normalizeSvc(r.svctype).join('・') || '';
+      if (lbl) lbl.textContent = '記録を編集中（' + r.date + '　' + (r.subject || '旦') + '　' + svcLabel + '）';
       const btn = document.getElementById('save-btn');
       if (btn) btn.textContent = '変更を保存する';
 
       showPage('form');
-      announce('編集モードです。' + r.date + '　' + (r.subject || '旦') + '　' + (r.svctype || '') + 'の記録を読み込みました。修正後、変更を保存するボタンを押してください。');
+      announce('編集モードです。' + r.date + '　' + (r.subject || '旦') + '　' + svcLabel + 'の記録を読み込みました。修正後、変更を保存するボタンを押してください。');
     }
 
     /* ─── 削除 ───────────────────────────────────── */
@@ -1678,7 +1691,9 @@
         return;
       }
 
-      const svcSel  = form.querySelector('input[name="svctype"]:checked');
+      // サービス種別：複数チェック対応（配列で保存）
+      const svctypeSel = [...form.querySelectorAll('input[name="svctype"]:checked')]
+                           .map(c => c.value);
       const doneCbs = [...form.querySelectorAll('input[name="done"]:checked')]
                         .map(c => c.value);
 
@@ -1691,7 +1706,7 @@
         office:    document.getElementById('f-office').value.trim(),
         staff:     document.getElementById('f-staff').value.trim(),
         subject:   valOf(form, 'subject') || '旦',
-        svctype:   svcSel ? svcSel.value : '',
+        svctype:   svctypeSel,  // 配列で保存（後方互換：旧データは文字列のまま）
         condition: valOf(form, 'condition'),
         mood:      valOf(form, 'mood'),
         food:      valOf(form, 'food'),
@@ -1830,7 +1845,11 @@
         if (inp) { inp.disabled = !isSanae; if (!isSanae && inp.checked) inp.checked = false; }
       });
 
-      // サービス種別の実施内容を更新（選択状態はリセットしない）
+      // 対象者切り替え時はすべてのサービス種別チェックをリセット
+      document.querySelectorAll('input[name="svctype"]').forEach(el => {
+        el.checked = false;
+        el.disabled = false;
+      });
       updateDoneChecks();
 
       // 事業所選択肢を対象者に合わせて更新（現在の選択値は保持）
@@ -1888,19 +1907,16 @@
         '関節可動域訓練', '筋力訓練', '歩行・移動訓練',
         'ADL訓練', '姿勢・ポジショニング指導', '家族指導', 'その他'
       ],
-      // ── 移動支援（地域生活支援事業・旦専用）────────────
-      // 同行援護で時間数不足時・従事者不在時に利用
+      // ── 移動支援（地域生活支援事業・旦専用）────────────────
       '移動支援': [
-        '外出付き添い・移動介助',
+        '外出付き添い（移動介助）',
         '通院同行（眼科）',
         '通院同行（整形外科）',
+        '買い物同行',
         '情報提供・代読・代筆',
         '公共交通機関利用介助',
-        '待合室での介助・サポート',
-        '処方箋・薬局対応',
         'その他'
       ],
-
       // ── 通院介助（早南江専用） ────────────────────────────────
       '通院介助': [
         '通院付き添い・移動介助',
@@ -1912,8 +1928,6 @@
       // ── 就労支援特別事業（雇用施策連携・重度障害者等就労支援） ─
       // 根拠：雇用施策との連携による重度障害者等就労支援特別事業
       // 同行援護とは給付体系・事業所・従業者要件が異なるため別管理
-      // ── モニタリング（ケアマネジャー訪問）────────────────────
-      // 実施内容セクション自体を非表示にするため選択肢は最小限
       'モニタリング': [
         '利用者本人への聞き取り',
         '家族への聞き取り',
@@ -1933,11 +1947,20 @@
 
     function updateDoneChecks() {
       const form   = document.getElementById('record-form');
-      const svcSel = form.querySelector('input[name="svctype"]:checked');
-      const svc    = svcSel ? svcSel.value : '';
-      const items  = DONE_ITEMS[svc] || DONE_ITEMS['_default'];
+      // 複数チェックに対応：選択されたすべての種別を取得
+      const svcSels = [...form.querySelectorAll('input[name="svctype"]:checked')]
+                        .map(el => el.value);
+      const svc = svcSels[0] || '';  // セクション制御用（後方互換）
+
+      // 実施内容：複数種別の選択肢を統合（重複除去）
+      const mergedItems = svcSels.length === 0
+        ? DONE_ITEMS['_default']
+        : [...new Set(
+            svcSels.flatMap(s => DONE_ITEMS[s] || DONE_ITEMS['_default'])
+          )];
       const wrap   = document.getElementById('done-checks');
 
+      const items = mergedItems;
       wrap.innerHTML = items.map((label, i) => {
         const id  = 'sv_' + i;
         const val = label;
@@ -1962,17 +1985,14 @@
       // バイタル・実施内容・医療投薬はサービス種別で制御
       const SVC_RULES = {
         'sec-vital':   ['訪問看護', '訪問診療', '訪問リハビリ'],
-        // モニタリングは実施内容を非表示にする
-        'sec-jisshi':  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
-                        '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
-                        '就労支援特別事業', 'その他'],
+        'sec-jisshi':  [],  // 全種別で表示
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
       };
 
       Object.entries(SVC_RULES).forEach(([secId, svcs]) => {
         const el = document.getElementById(secId);
         if (!el) return;
-        const show = svcs.length === 0 || svcs.includes(svc) || svc === '';
+        const show = svcSels.length === 0 || svcs.some(s => svcSels.includes(s));
         el.style.display = show ? '' : 'none';
         el.querySelectorAll('input, select, textarea').forEach(inp => {
           inp.disabled = !show;
@@ -1984,7 +2004,7 @@
                        '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'];
       const hahaEl = document.getElementById('sec-haha');
       if (hahaEl) {
-        const showHaha = !isSanaeNow && (hahaSvc.includes(svc) || svc === '');
+        const showHaha = !isSanaeNow && (svcSels.length === 0 || svcSels.some(s => hahaSvc.includes(s)));
         hahaEl.style.display = showHaha ? '' : 'none';
         hahaEl.querySelectorAll('input, select, textarea').forEach(inp => {
           inp.disabled = !showHaha;
@@ -1992,22 +2012,9 @@
       }
 
       // VoiceOver向けアナウンス
-      const secNames = {
-        '家事援助':       '家事援助（バイタル・医療投薬・母親の状態は非表示）',
-        '入浴介助':       '入浴介助（バイタル・医療投薬・母親の状態は非表示）',
-        '訪問看護':       '訪問看護（全セクション表示）',
-        '訪問鍼灸':       '訪問鍼灸（バイタル・母親の状態は非表示）',
-        '同行援護':       '同行援護（バイタル・母親の状態・医療投薬は非表示）',
-        '移動支援':       '移動支援（バイタル・母親の状態・医療投薬は非表示）',
-        '訪問診療':       '訪問診療（全セクション表示）',
-        '訪問服薬指導':   '訪問服薬指導（バイタルは非表示）',
-        '訪問リハビリ':   '訪問リハビリ（医療投薬は非表示）',
-        '就労支援特別事業': '就労支援特別事業（バイタル・母親の状態・医療投薬は非表示）',
-        'モニタリング':     'モニタリング（バイタル・実施内容・医療投薬は非表示）',
-        '':               'サービス種別を選択してください',
-      };
-      announce('サービス種別を「' + (svc || '未選択') + '」に設定しました。' +
-               (secNames[svc] || '') + '。実施内容の選択肢も更新しました。');
+      // VoiceOver向けアナウンス（複数選択対応）
+      const svcLabel = svcSels.length > 0 ? svcSels.join('、') : '未選択';
+      announce('サービス種別を「' + svcLabel + '」に設定しました。関連する入力欄を更新しました。');
     }
 
     /* ─── フォームクリア ─────────────────────────── */
