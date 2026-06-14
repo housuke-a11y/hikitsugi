@@ -595,19 +595,9 @@
         <div id="prev-okuri-dan" class="alert-none" role="status">記録がありません</div>
       </section>
 
-      <section class="card" aria-labelledby="h-miss-dan">
-        <h2 class="card-title" id="h-miss-dan">前回の未実施ケアと理由（旦）</h2>
-        <div id="prev-miss-dan" class="alert-none" role="status">記録がありません</div>
-      </section>
-
       <section class="card" aria-labelledby="h-okuri-sanae">
         <h2 class="card-title" id="h-okuri-sanae">前回の申し送り事項（早南江）</h2>
         <div id="prev-okuri-sanae" class="alert-none" role="status">記録がありません</div>
-      </section>
-
-      <section class="card" aria-labelledby="h-miss-sanae">
-        <h2 class="card-title" id="h-miss-sanae">前回の未実施ケアと理由（早南江）</h2>
-        <div id="prev-miss-sanae" class="alert-none" role="status">記録がありません</div>
       </section>
 
       <section class="card" aria-labelledby="h-sched">
@@ -963,17 +953,6 @@
               <div class="check-item"><input type="checkbox" id="sv6" name="done" value="その他"><label for="sv6">その他</label></div>
             </div>
           </fieldset>
-          <div class="field">
-            <label for="f-undone">未実施の内容とその理由</label>
-            <div class="mic-row">
-              <textarea id="f-undone" name="undone" rows="3"
-                        placeholder="未実施の内容と理由（音声または入力）"
-                        aria-label="未実施の内容とその理由。音声入力するには右のマイクボタンを押してください"></textarea>
-              <button type="button" class="mic-btn"
-                      onclick="startVoice('f-undone', this)"
-                      aria-label="未実施内容と理由の音声入力を開始">🎤</button>
-            </div>
-          </div>
         </div>
 
         <!-- 医療・投薬関連（医療職記入） -->
@@ -1000,12 +979,12 @@
         <div class="card">
           <div class="sec-bar sec-common" role="heading" aria-level="2">申し送り・連絡事項</div>
           <p class="caution" role="note">
-            緊急度の高い内容は冒頭に【要確認】と記入してください
+            緊急度の高い内容は冒頭に【要確認】と記入してください。未実施だったケアがある場合は、内容と理由もこの欄にご記入ください。
           </p>
           <div class="mic-row">
-            <textarea id="f-okuri" name="okuri" rows="6"
-                      placeholder="次の援助者への申し送り事項（音声または入力）"
-                      aria-label="申し送り・連絡事項。緊急の場合は冒頭に要確認と入力してください。音声入力するには右のマイクボタンを押してください"></textarea>
+            <textarea id="f-okuri" name="okuri" rows="8"
+                      placeholder="次の援助者への申し送り事項（音声または入力）。未実施だったケアがある場合は、その内容と理由もここにご記入ください"
+                      aria-label="申し送り・連絡事項。未実施だったケアがある場合はその内容と理由もここに記入してください。緊急の場合は冒頭に要確認と入力してください。音声入力するには右のマイクボタンを押してください"></textarea>
             <button type="button" class="mic-btn"
                     onclick="startVoice('f-okuri', this)"
                     aria-label="申し送り事項の音声入力を開始">🎤</button>
@@ -1223,35 +1202,24 @@
 
       function fillOkuri(elId, prev) {
         const el = document.getElementById(elId);
-        if (prev && prev.okuri && prev.okuri.trim()) {
+        // 申し送り本文 ＋ 旧データの「未実施ケアと理由」があれば統合表示
+        const okuriText = prev ? (prev.okuri || '').trim() : '';
+        const undoneText = prev ? (prev.undone || '').trim() : '';
+        const combined = [okuriText, undoneText ? '【未実施】' + undoneText : '']
+                           .filter(Boolean).join('\n\n');
+        if (prev && combined) {
           el.className = 'prev-box';
           el.innerHTML =
             `<div class="prev-meta">${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
-            `<div class="prev-body">${escHtml(prev.okuri)}</div>`;
+            `<div class="prev-body">${escHtml(combined)}</div>`;
         } else {
           el.className = 'alert-none';
           el.textContent = '申し送り事項の記録がありません';
         }
       }
 
-      function fillMiss(elId, prev) {
-        const el = document.getElementById(elId);
-        if (prev && prev.undone && prev.undone.trim()) {
-          el.className = 'alert-warn';
-          el.innerHTML =
-            `<div style="font-size:0.8125rem;font-weight:600;color:#7a5c00;margin-bottom:6px">` +
-            `${escHtml(prev.date)}　${svcBadge(prev.svctype)}</div>` +
-            `<div>${escHtml(prev.undone)}</div>`;
-        } else {
-          el.className = 'alert-none';
-          el.textContent = '未実施ケアの記録がありません';
-        }
-      }
-
       fillOkuri('prev-okuri-dan',   lastOf('旦'));
-      fillMiss ('prev-miss-dan',    lastOf('旦'));
       fillOkuri('prev-okuri-sanae', lastOf('早南江'));
-      fillMiss ('prev-miss-sanae',  lastOf('早南江'));
 
       /* 今日のスケジュール */
       const dow = new Date().getDay();
@@ -1358,10 +1326,10 @@
         ['疼痛・痺れ（早南江）',    r.s_pain ? r.s_pain + (r.spain_note ? '：' + r.spain_note : '') : ''],
         ['転倒・ヒヤリ（早南江）',  r.s_fall ? r.s_fall + (r.sfall_note ? '：' + r.sfall_note : '') : ''],
         ['実施サービス', (r.done || []).join('、')],
-        ['未実施・理由', r.undone],
         ['処方薬変更',   r.rx],
         ['変更内容',     r.rx_note],
-        ['申し送り事項', r.okuri],
+        ['申し送り事項', [r.okuri, r.undone ? '【旧:未実施】' + r.undone : '']
+                          .filter(Boolean).join('\n\n')],
       ].filter(([, v]) => v);
 
       document.getElementById('modal-content').innerHTML =
@@ -1527,7 +1495,6 @@
         secBar('実施内容', 'p-sec-helper') +
         '<table class="p-table">' +
         row('実施サービス', doneStr) +
-        row('未実施・理由',  r.undone) +
         '</table></div>';
 
       /* ── 医療・投薬（医療職記入）── 非表示なら出力しない */
@@ -1542,11 +1509,14 @@
       }
 
       /* ── 申し送り（共通） ── */
+      // 旧データの「未実施・理由」(r.undone) があれば申し送りに統合表示
+      const okuriCombined = [r.okuri, r.undone ? '【旧:未実施】' + r.undone : '']
+        .filter(Boolean).join('\n\n');
       html += '<div class="p-section">' +
         secBar('申し送り・連絡事項（次の援助者へ）', 'p-sec-common') +
         '<table class="p-table">' +
         '<tr><td class="p-val p-okuri-val" colspan="2">' +
-        escHtml(r.okuri || '') + '</td></tr>' +
+        escHtml(okuriCombined) + '</td></tr>' +
         '</table></div>';
 
       /* ── 欄外注記 ── */
@@ -1670,7 +1640,6 @@
         const cb = form.querySelector(`input[name="done"][value="${CSS.escape(val)}"]`);
         if (cb) cb.checked = true;
       });
-      document.getElementById('f-undone').value = r.undone || '';
 
       // 医療・投薬
       setRadio('rx', r.rx);
@@ -1779,7 +1748,6 @@
         mom:       valOf(form, 'mom'),
         mom_note:  document.getElementById('f-mom-note').value.trim(),
         done:      doneCbs,
-        undone:    document.getElementById('f-undone').value.trim(),
         rx:        valOf(form, 'rx'),
         rx_note:   document.getElementById('f-rx-note').value.trim(),
         okuri:     document.getElementById('f-okuri').value.trim(),
