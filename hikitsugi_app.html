@@ -1039,6 +1039,17 @@
             </select>
           </div>
           <div>
+            <label for="filter-period">期間</label>
+            <select id="filter-period" onchange="renderLog()"
+                    aria-label="記録の期間で絞り込み">
+              <option value="all">全期間（6ヶ月分）</option>
+              <option value="7">本日から1週間以内</option>
+              <option value="14">本日から2週間以内</option>
+              <option value="30">本日から1ヶ月以内</option>
+              <option value="90">本日から3ヶ月以内</option>
+            </select>
+          </div>
+          <div>
             <label for="filter-sort">並べ替え</label>
             <select id="filter-sort" onchange="renderLog()"
                     aria-label="日付の並べ替え">
@@ -1243,10 +1254,25 @@
       const type    = document.getElementById('filter-type').value;
       const sort    = document.getElementById('filter-sort').value;
       const subject = document.getElementById('filter-subject').value;
+      const period  = document.getElementById('filter-period').value; // 'all' | '7' | '14' | '30' | '90'
 
       let records = getRecords();
       if (type)    records = records.filter(r => normalizeSvc(r.svctype).includes(type));
       if (subject) records = records.filter(r => (r.subject || '旦') === subject);
+
+      // 期間フィルタ：訪問日(r.date)を基準に「本日から○日以内」で絞り込む
+      if (period !== 'all') {
+        const days  = parseInt(period, 10);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const cutoff = new Date(today);
+        cutoff.setDate(cutoff.getDate() - days);
+        records = records.filter(r => {
+          if (!r.date) return false;
+          const d = new Date(r.date + 'T00:00:00');
+          return d >= cutoff && d <= today;
+        });
+      }
 
       records.sort((a, b) => {
         const da = a.savedAt || 0;
@@ -1256,9 +1282,13 @@
 
       const el = document.getElementById('log-list');
       if (records.length === 0) {
+        const periodLabel = {
+          all: '', '7': '直近1週間以内に', '14': '直近2週間以内に',
+          '30': '直近1ヶ月以内に', '90': '直近3ヶ月以内に'
+        }[period] || '';
         el.innerHTML =
           '<p style="font-size:0.9375rem;color:var(--txt-sub);padding:8px 0">' +
-          '該当する記録がありません</p>';
+          periodLabel + '該当する記録がありません</p>';
         return;
       }
 
