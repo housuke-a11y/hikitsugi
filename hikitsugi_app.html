@@ -684,6 +684,7 @@
               <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc5" value="同行援護"><label for="svc5">同行援護</label></div>
               <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc13" value="移動支援"><label for="svc13">移動支援</label></div>
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc6" value="訪問診療"><label for="svc6">訪問診療</label></div>
+              <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc14" value="眼科訪問診療"><label for="svc14">眼科訪問診療</label></div>
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc7" value="訪問服薬指導"><label for="svc7">訪問服薬指導</label></div>
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
               <div class="check-item svc-sanae-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
@@ -913,12 +914,141 @@
           </div>
         </div>
 
+        <!-- 眼科診療記録（眼科訪問診療時のみ表示） -->
+        <div class="card" id="sec-eye" style="display:none">
+          <div class="sec-bar sec-medical" role="heading" aria-level="2">眼科診療記録</div>
+          <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+            空欄可。眼科医が記入してください。
+          </p>
+
+          <!-- 視力 -->
+          <fieldset style="border:none;padding:0" class="field">
+            <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:6px">
+              視力（矯正視力を含む）
+            </legend>
+            <div class="row2">
+              <div>
+                <label for="f-vacuity-r">右眼</label>
+                <input type="text" id="f-vacuity-r" name="vacuity_r"
+                       inputmode="decimal" placeholder="例：0.04（矯正）">
+              </div>
+              <div>
+                <label for="f-vacuity-l">左眼</label>
+                <input type="text" id="f-vacuity-l" name="vacuity_l"
+                       inputmode="decimal" placeholder="例：0.04（矯正）">
+              </div>
+            </div>
+            <p style="font-size:0.8125rem;color:var(--txt-sub);margin:8px 0 4px">
+              視力0.01未満の場合（該当すれば右眼・左眼それぞれ選択）
+            </p>
+            <div class="row2">
+              <div>
+                <label for="f-vacuity-r-low">右眼（測定不能域）</label>
+                <select id="f-vacuity-r-low" name="vacuity_r_low" aria-label="右眼の測定不能域">
+                  <option value="">該当なし</option>
+                  <option value="指数弁">指数弁</option>
+                  <option value="眼前手動弁">眼前手動弁</option>
+                  <option value="光覚弁">光覚弁</option>
+                  <option value="測定不能">測定不能</option>
+                </select>
+              </div>
+              <div>
+                <label for="f-vacuity-l-low">左眼（測定不能域）</label>
+                <select id="f-vacuity-l-low" name="vacuity_l_low" aria-label="左眼の測定不能域">
+                  <option value="">該当なし</option>
+                  <option value="指数弁">指数弁</option>
+                  <option value="眼前手動弁">眼前手動弁</option>
+                  <option value="光覚弁">光覚弁</option>
+                  <option value="測定不能">測定不能</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- 眼圧 -->
+          <div class="row2 field">
+            <div>
+              <label for="f-iop-r">眼圧　右眼（mmHg）</label>
+              <input type="text" id="f-iop-r" name="iop_r"
+                     inputmode="decimal" placeholder="例：16">
+              <div class="check-item" style="margin-top:6px">
+                <input type="checkbox" id="f-iop-r-na" name="iop_r_na"
+                       onchange="toggleIopField('r')">
+                <label for="f-iop-r-na">測定不能</label>
+              </div>
+            </div>
+            <div>
+              <label for="f-iop-l">眼圧　左眼（mmHg）</label>
+              <input type="text" id="f-iop-l" name="iop_l"
+                     inputmode="decimal" placeholder="例：16">
+              <div class="check-item" style="margin-top:6px">
+                <input type="checkbox" id="f-iop-l-na" name="iop_l_na"
+                       onchange="toggleIopField('l')">
+                <label for="f-iop-l-na">測定不能</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 眼底所見 -->
+          <div class="field">
+            <label for="f-fundus">眼底所見（網膜症・緑内障等の状態）</label>
+            <div class="mic-row">
+              <textarea id="f-fundus" name="fundus" rows="2"
+                        placeholder="所見を音声または入力"
+                        aria-label="眼底所見。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-fundus', this)"
+                      aria-label="眼底所見の音声入力を開始">🎤</button>
+            </div>
+          </div>
+
+          <!-- 自覚症状 -->
+          <div class="field">
+            <label for="f-eye-subjective">自覚症状（見え方の変化、痛み等）</label>
+            <div class="mic-row">
+              <textarea id="f-eye-subjective" name="eye_subjective" rows="2"
+                        placeholder="本人の訴えを音声または入力"
+                        aria-label="自覚症状。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-eye-subjective', this)"
+                      aria-label="自覚症状の音声入力を開始">🎤</button>
+            </div>
+          </div>
+
+          <!-- 他覚症状 -->
+          <div class="field">
+            <label for="f-eye-objective">他覚症状（医師・家族・ヘルパー等が気づいた見え方の変化）</label>
+            <div class="mic-row">
+              <textarea id="f-eye-objective" name="eye_objective" rows="2"
+                        placeholder="周囲が気づいた変化を音声または入力"
+                        aria-label="他覚症状。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-eye-objective', this)"
+                      aria-label="他覚症状の音声入力を開始">🎤</button>
+            </div>
+          </div>
+
+          <!-- 処方変更 -->
+          <div class="field">
+            <label for="f-eye-rx">処方変更（点眼薬等）</label>
+            <div class="mic-row">
+              <textarea id="f-eye-rx" name="eye_rx" rows="2"
+                        placeholder="変更内容を音声または入力（変更なしの場合は空欄でも可）"
+                        aria-label="点眼薬等の処方変更内容。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn"
+                      onclick="startVoice('f-eye-rx', this)"
+                      aria-label="処方変更内容の音声入力を開始">🎤</button>
+            </div>
+          </div>
+        </div>
+
         <!-- 母親の状態（ヘルパー記入） -->
         <div class="card" id="sec-haha">
           <div class="sec-bar sec-helper" role="heading" aria-level="2">母親の状態</div>
           <fieldset style="border:none;padding:0" class="field">
             <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調</legend>
             <div class="check-group grp-helper">
+
               <div class="check-item"><input type="radio" name="mom" id="mm1" value="良好"><label for="mm1">良好</label></div>
               <div class="check-item"><input type="radio" name="mom" id="mm2" value="不良"><label for="mm2">不良</label></div>
               <div class="check-item"><input type="radio" name="mom" id="mm3" value="不在"><label for="mm3">不在</label></div>
@@ -1022,10 +1152,13 @@
               <option>訪問鍼灸</option>
               <option>同行援護</option>
               <option>訪問診療</option>
+              <option>眼科訪問診療</option>
               <option>訪問服薬指導</option>
               <option>訪問リハビリ</option>
+              <option>移動支援</option>
               <option>通院介助</option>
               <option>就労支援特別事業</option>
+              <option>モニタリング</option>
               <option>その他</option>
             </select>
           </div>
@@ -1345,6 +1478,19 @@
         ['血圧',         (r.bph && r.bpl) ? r.bph + '/' + r.bpl + ' mmHg' : ''],
         ['脈拍',         r.pulse ? r.pulse + ' 回/分' : ''],
         ['酸素飽和度',   r.spo2  ? r.spo2  + ' %'    : ''],
+        /* 眼科診療記録（眼科訪問診療時のみ意味を持つ） */
+        ['視力（右眼）', r.vacuity_r_low || r.vacuity_r],
+        ['視力（左眼）', r.vacuity_l_low || r.vacuity_l],
+        ['眼圧',         (() => {
+          const rTxt = r.iop_r_na ? '測定不能' : (r.iop_r ? r.iop_r + ' mmHg' : '');
+          const lTxt = r.iop_l_na ? '測定不能' : (r.iop_l ? r.iop_l + ' mmHg' : '');
+          if (!rTxt && !lTxt) return '';
+          return '右 ' + (rTxt || '?') + '／左 ' + (lTxt || '?');
+        })()],
+        ['眼底所見',     r.fundus],
+        ['自覚症状（眼科）', r.eye_subjective],
+        ['他覚症状（眼科）', r.eye_objective],
+        ['処方変更（眼科）', r.eye_rx],
         ['母親の体調',   r.mom],
         ['母親特記',     r.mom_note],
         /* 早南江専用 */
@@ -1395,6 +1541,7 @@
       haha:    ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
                 '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
       iryo:    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
+      eye:     ['眼科訪問診療'],
     };
 
     // 現在モーダルに表示中の記録IDを保持
@@ -1423,6 +1570,7 @@
       const showHaha   = hasAny(PRINT_RULES.haha)   || svcs.length === 0;
       const showIryo   = hasAny(PRINT_RULES.iryo)   || svcs.length === 0;
       const showJisshi = hasAny(PRINT_RULES.jisshi) || svcs.length === 0;
+      const showEye    = hasAny(PRINT_RULES.eye); // 眼科訪問診療を選んだ時のみ表示（svcs.length===0では出さない）
 
       // 時刻文字列
       const timeStr = [r.start, r.end].filter(Boolean).join(' ～ ');
@@ -1508,6 +1656,28 @@
           '<td class="p-key">脈拍</td><td class="p-val">' + escHtml(r.pulse ? r.pulse + ' 回/分' : '') + '</td>' +
           '<td class="p-key">SpO₂</td><td class="p-val">' + escHtml(r.spo2 ? r.spo2 + ' %' : '') + '</td>' +
           '</tr></table></div>';
+      }
+
+      /* ── 眼科診療記録（眼科訪問診療時のみ） ── */
+      if (showEye) {
+        const vacR = r.vacuity_r_low ? r.vacuity_r_low : (r.vacuity_r || '');
+        const vacL = r.vacuity_l_low ? r.vacuity_l_low : (r.vacuity_l || '');
+        const iopR = r.iop_r_na ? '測定不能' : (r.iop_r ? r.iop_r + ' mmHg' : '');
+        const iopL = r.iop_l_na ? '測定不能' : (r.iop_l ? r.iop_l + ' mmHg' : '');
+        const iopStr = (iopR || iopL)
+          ? '右 ' + (iopR || '?') + '／左 ' + (iopL || '?')
+          : '';
+        html += '<div class="p-section">' +
+          secBar('眼科診療記録', 'p-sec-medical') +
+          '<table class="p-table">' +
+          row('視力（右眼）', vacR) +
+          row('視力（左眼）', vacL) +
+          row('眼圧',         iopStr) +
+          row('眼底所見',     r.fundus) +
+          row('自覚症状',     r.eye_subjective) +
+          row('他覚症状',     r.eye_objective) +
+          row('処方変更',     r.eye_rx) +
+          '</table></div>';
       }
 
       /* ── 母親の状態（ヘルパー記入）── 非表示なら出力しない */
@@ -1661,6 +1831,26 @@
       document.getElementById('f-pulse').value = r.pulse || '';
       if (document.getElementById('f-spo2')) document.getElementById('f-spo2').value = r.spo2 || '';
 
+      // 眼科診療記録
+      if (document.getElementById('f-vacuity-r'))     document.getElementById('f-vacuity-r').value     = r.vacuity_r     || '';
+      if (document.getElementById('f-vacuity-l'))     document.getElementById('f-vacuity-l').value     = r.vacuity_l     || '';
+      if (document.getElementById('f-vacuity-r-low')) document.getElementById('f-vacuity-r-low').value = r.vacuity_r_low || '';
+      if (document.getElementById('f-vacuity-l-low')) document.getElementById('f-vacuity-l-low').value = r.vacuity_l_low || '';
+      if (document.getElementById('f-iop-r'))         document.getElementById('f-iop-r').value         = r.iop_r         || '';
+      if (document.getElementById('f-iop-l'))         document.getElementById('f-iop-l').value         = r.iop_l         || '';
+      if (document.getElementById('f-iop-r-na')) {
+        document.getElementById('f-iop-r-na').checked = !!r.iop_r_na;
+        toggleIopField('r');
+      }
+      if (document.getElementById('f-iop-l-na')) {
+        document.getElementById('f-iop-l-na').checked = !!r.iop_l_na;
+        toggleIopField('l');
+      }
+      if (document.getElementById('f-fundus'))         document.getElementById('f-fundus').value         = r.fundus         || '';
+      if (document.getElementById('f-eye-subjective')) document.getElementById('f-eye-subjective').value = r.eye_subjective || '';
+      if (document.getElementById('f-eye-objective'))  document.getElementById('f-eye-objective').value  = r.eye_objective  || '';
+      if (document.getElementById('f-eye-rx'))         document.getElementById('f-eye-rx').value         = r.eye_rx         || '';
+
       // 母親の状態
       setRadio('mom', r.mom);
       if (document.getElementById('f-mom-note')) document.getElementById('f-mom-note').value = r.mom_note || '';
@@ -1775,6 +1965,19 @@
         bpl:       document.getElementById('f-bpl').value.trim(),
         pulse:     document.getElementById('f-pulse').value.trim(),
         spo2:      document.getElementById('f-spo2') ? document.getElementById('f-spo2').value.trim() : '',
+        // 眼科診療記録（眼科訪問診療時のみ意味を持つ。空欄可）
+        vacuity_r:     document.getElementById('f-vacuity-r')     ? document.getElementById('f-vacuity-r').value.trim()     : '',
+        vacuity_l:     document.getElementById('f-vacuity-l')     ? document.getElementById('f-vacuity-l').value.trim()     : '',
+        vacuity_r_low: document.getElementById('f-vacuity-r-low') ? document.getElementById('f-vacuity-r-low').value       : '',
+        vacuity_l_low: document.getElementById('f-vacuity-l-low') ? document.getElementById('f-vacuity-l-low').value       : '',
+        iop_r:         document.getElementById('f-iop-r')         ? document.getElementById('f-iop-r').value.trim()         : '',
+        iop_l:         document.getElementById('f-iop-l')         ? document.getElementById('f-iop-l').value.trim()         : '',
+        iop_r_na:      document.getElementById('f-iop-r-na')      ? document.getElementById('f-iop-r-na').checked            : false,
+        iop_l_na:      document.getElementById('f-iop-l-na')      ? document.getElementById('f-iop-l-na').checked            : false,
+        fundus:          document.getElementById('f-fundus')          ? document.getElementById('f-fundus').value.trim()          : '',
+        eye_subjective:  document.getElementById('f-eye-subjective')  ? document.getElementById('f-eye-subjective').value.trim()  : '',
+        eye_objective:   document.getElementById('f-eye-objective')   ? document.getElementById('f-eye-objective').value.trim()   : '',
+        eye_rx:          document.getElementById('f-eye-rx')          ? document.getElementById('f-eye-rx').value.trim()          : '',
         mom:       valOf(form, 'mom'),
         mom_note:  document.getElementById('f-mom-note').value.trim(),
         done:      doneCbs,
@@ -1986,6 +2189,20 @@
       ],
     };
 
+    /* ─── 眼圧「測定不能」チェック連動 ──────────────── */
+    // チェックされたら数値入力欄を非表示・disabled・クリアにする
+    function toggleIopField(side) {
+      const cb    = document.getElementById('f-iop-' + side + '-na');
+      const input = document.getElementById('f-iop-' + side);
+      if (!cb || !input) return;
+      const na = cb.checked;
+      input.style.display = na ? 'none' : '';
+      input.disabled = na;
+      if (na) input.value = '';
+      announce((side === 'r' ? '右眼' : '左眼') + 'の眼圧を' +
+               (na ? '測定不能に設定しました' : '数値入力に戻しました'));
+    }
+
     /* ─── サービスごとの実施時間（任意） ──────────────── */
     // 既存の入力値を保持したまま、選択中のサービス種別に応じて
     // 時間入力欄を再構築する
@@ -2075,6 +2292,8 @@
                         '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
                         '就労支援特別事業', 'その他'],
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
+        // 眼科訪問診療専用：眼科診療記録セクション
+        'sec-eye':     ['眼科訪問診療'],
       };
 
       Object.entries(SVC_RULES).forEach(([secId, svcs]) => {
