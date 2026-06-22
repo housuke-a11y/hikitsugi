@@ -389,6 +389,10 @@
     .badge-medical { background: var(--cm-hdr);  color: var(--cm); }
     .badge-work    { background: #e8d5f5;         color: #5a2d82; }  /* 就労支援：紫系 */
     .badge-common  { background: var(--cc-hdr);  color: var(--cc-txt); }
+    .badge-self    { background: #fde8b4;         color: #7a4f00; }  /* 本人・家族申告：橙系 */
+    .sec-self      { background: #fde8b4;         color: #7a4f00; }
+    /* 本人申告モード時のフォームハイライト */
+    #self-report-form { border: 2px solid #f0a830; border-radius: var(--rad-lg); padding: 4px; }
 
     .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .filter-row > div { flex: 1; min-width: 130px; }
@@ -590,6 +594,14 @@
     <main id="page-home" class="page active"
           role="main" aria-label="ホーム画面">
 
+      <!-- ピン留めされた本人・家族申告（最大3件・最新順） -->
+      <section class="card" aria-labelledby="h-pinned" id="sec-pinned" style="display:none">
+        <h2 class="card-title" id="h-pinned">
+          <span style="display:inline-block;background:#fde8b4;color:#7a4f00;padding:2px 8px;border-radius:4px;font-size:0.875rem;margin-right:6px">📌 ピン留め</span>本人・家族からの申告
+        </h2>
+        <div id="pinned-list" role="list"></div>
+      </section>
+
       <section class="card" aria-labelledby="h-okuri-dan">
         <h2 class="card-title" id="h-okuri-dan">前回の申し送り事項（旦）</h2>
         <div id="prev-okuri-dan" class="alert-none" role="status">記録がありません</div>
@@ -605,10 +617,17 @@
         <div id="today-sched" role="status" aria-label="本日の定例訪問スケジュール"></div>
       </section>
 
-      <button class="btn-primary" onclick="showPage('form')"
-              aria-label="新規記録の入力画面へ移動します">
-        新規記録を入力する
-      </button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" onclick="showPage('form')"
+                aria-label="新規記録の入力画面へ移動します" style="flex:1">
+          新規記録を入力する
+        </button>
+        <button class="btn-primary" style="flex:1;background:#c87800"
+                onclick="startSelfReport()"
+                aria-label="本人または家族として体調や希望ケアを申告する入力画面へ移動します">
+          本人・家族申告を入力する
+        </button>
+      </div>
 
     </main>
 
@@ -1134,6 +1153,227 @@
       </form>
     </main>
 
+    <!-- ===== 本人・家族申告フォーム ===== -->
+    <main id="page-self" class="page"
+          role="main" aria-label="本人・家族申告入力画面">
+
+      <div id="self-report-form">
+        <form id="self-form" onsubmit="saveSelfReport(event)" novalidate>
+
+          <!-- ヘッダ説明 -->
+          <div class="card">
+            <div class="sec-bar sec-self" role="heading" aria-level="2">本人・家族申告</div>
+            <p style="font-size:0.875rem;color:var(--txt-sub);margin-top:8px">
+              利用者本人または同居家族が体調・困りごと・希望するケアを入力します。この記録は援助者の申し送りとは区別して管理されます。
+            </p>
+          </div>
+
+          <!-- 基本情報 -->
+          <div class="card">
+            <div class="sec-bar sec-common" role="heading" aria-level="2">基本情報</div>
+
+            <div class="field">
+              <label for="sf-subject">申告者</label>
+              <select id="sf-subject" name="sf_subject" aria-label="申告者を選択してください"
+                      onchange="updateSelfForm()">
+                <option value="旦">旦（本人）</option>
+                <option value="早南江">早南江（家族）</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sf-date">日付 <span aria-hidden="true">*</span></label>
+              <input type="date" id="sf-date" name="sf_date"
+                     required aria-required="true">
+            </div>
+
+            <div class="row2 field">
+              <div>
+                <label for="sf-start">記録時刻　開始</label>
+                <input type="time" id="sf-start" name="sf_start">
+              </div>
+              <div>
+                <label for="sf-end">記録時刻　終了</label>
+                <input type="time" id="sf-end" name="sf_end">
+              </div>
+            </div>
+          </div>
+
+          <!-- 体調（旦） -->
+          <div class="card" id="sf-sec-dan">
+            <div class="sec-bar sec-self" role="heading" aria-level="2">体調・状態（旦）</div>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_condition" id="sfc1" value="良好"><label for="sfc1">良好</label></div>
+                <div class="check-item"><input type="radio" name="sf_condition" id="sfc2" value="やや不良"><label for="sfc2">やや不良</label></div>
+                <div class="check-item"><input type="radio" name="sf_condition" id="sfc3" value="不良"><label for="sfc3">不良</label></div>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">気分・精神状態</legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_mood" id="sfm1" value="穏やか"><label for="sfm1">穏やか</label></div>
+                <div class="check-item"><input type="radio" name="sf_mood" id="sfm2" value="不安・緊張あり"><label for="sfm2">不安・緊張あり</label></div>
+                <div class="check-item"><input type="radio" name="sf_mood" id="sfm3" value="その他"><label for="sfm3">その他</label></div>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">食事・水分摂取</legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_food" id="sff1" value="摂取できている"><label for="sff1">摂取できている</label></div>
+                <div class="check-item"><input type="radio" name="sf_food" id="sff2" value="少ない"><label for="sff2">少ない</label></div>
+                <div class="check-item"><input type="radio" name="sf_food" id="sff3" value="摂取できていない"><label for="sff3">摂取できていない</label></div>
+              </div>
+            </fieldset>
+
+            <!-- 見えにくさ（旦専用） -->
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">
+                見えにくさ・視覚的困りごと
+                <span style="font-size:0.75rem;font-weight:400;margin-left:4px">（緑内障による視野・見え方の変化など）</span>
+              </legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_vision" id="sfv1" value="変化なし（いつも通り）"><label for="sfv1">変化なし（いつも通り）</label></div>
+                <div class="check-item"><input type="radio" name="sf_vision" id="sfv2" value="やや見えにくい"><label for="sfv2">やや見えにくい</label></div>
+                <div class="check-item"><input type="radio" name="sf_vision" id="sfv3" value="かなり見えにくい"><label for="sfv3">かなり見えにくい</label></div>
+              </div>
+              <div class="mic-row" style="margin-top:8px">
+                <textarea id="sf-vision-note" name="sf_vision_note" rows="2"
+                          placeholder="具体的な困りごと（音声または入力）"
+                          aria-label="見えにくさの具体的な内容。音声入力するには右のマイクボタンを押してください"></textarea>
+                <button type="button" class="mic-btn" onclick="startVoice('sf-vision-note',this)"
+                        aria-label="見えにくさの音声入力を開始">🎤</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <!-- 体調（早南江） -->
+          <div class="card" id="sf-sec-sanae" style="display:none">
+            <div class="sec-bar sec-self" role="heading" aria-level="2">体調・状態（早南江）</div>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">体調全般</legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_s_condition" id="sfsc1" value="良好"><label for="sfsc1">良好</label></div>
+                <div class="check-item"><input type="radio" name="sf_s_condition" id="sfsc2" value="やや不良"><label for="sfsc2">やや不良</label></div>
+                <div class="check-item"><input type="radio" name="sf_s_condition" id="sfsc3" value="不良"><label for="sfsc3">不良</label></div>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">動悸・息切れ・胸部症状<span style="font-size:0.75rem;font-weight:400;margin-left:4px">（心房細動・急性貧血の既往あり）</span></legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_cardiac" id="sfca1" value="なし"><label for="sfca1">なし</label></div>
+                <div class="check-item"><input type="radio" name="sf_cardiac" id="sfca2" value="あり"><label for="sfca2">あり</label></div>
+              </div>
+              <div class="mic-row" style="margin-top:8px">
+                <textarea id="sf-cardiac-note" name="sf_cardiac_note" rows="2"
+                          placeholder="症状の内容（音声または入力）"
+                          aria-label="動悸・胸部症状の内容。音声入力するには右のマイクボタンを押してください"></textarea>
+                <button type="button" class="mic-btn" onclick="startVoice('sf-cardiac-note',this)"
+                        aria-label="動悸・胸部症状の音声入力を開始">🎤</button>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">腰痛・股関節痛（右）<span style="font-size:0.75rem;font-weight:400;margin-left:4px">（慢性腰痛・右股関節人工関節）</span></legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_joint" id="sfj1" value="変化なし"><label for="sfj1">変化なし</label></div>
+                <div class="check-item"><input type="radio" name="sf_joint" id="sfj2" value="やや強い"><label for="sfj2">やや強い</label></div>
+                <div class="check-item"><input type="radio" name="sf_joint" id="sfj3" value="強い"><label for="sfj3">強い</label></div>
+              </div>
+              <div class="mic-row" style="margin-top:8px">
+                <textarea id="sf-joint-note" name="sf_joint_note" rows="2"
+                          placeholder="具体的な状況（音声または入力）"
+                          aria-label="腰痛・股関節痛の内容。音声入力するには右のマイクボタンを押してください"></textarea>
+                <button type="button" class="mic-btn" onclick="startVoice('sf-joint-note',this)"
+                        aria-label="腰痛・股関節痛の音声入力を開始">🎤</button>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">食事・水分摂取</legend>
+              <div class="check-group grp-common">
+                <div class="check-item"><input type="radio" name="sf_s_food" id="sfsfoo1" value="摂取できている"><label for="sfsfoo1">摂取できている</label></div>
+                <div class="check-item"><input type="radio" name="sf_s_food" id="sfsfoo2" value="少ない"><label for="sfsfoo2">少ない</label></div>
+                <div class="check-item"><input type="radio" name="sf_s_food" id="sfsfoo3" value="摂取できていない"><label for="sfsfoo3">摂取できていない</label></div>
+              </div>
+            </fieldset>
+          </div>
+
+          <!-- バイタル自己測定（任意・参考値） -->
+          <div class="card">
+            <div class="sec-bar sec-self" role="heading" aria-level="2">バイタル自己測定（任意・参考値）</div>
+            <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+              音声体温計・音声血圧計・Apple Watch等で測定した参考値を記録できます。空欄可。
+            </p>
+            <div class="row2">
+              <div>
+                <label for="sf-temp">体温（℃）</label>
+                <input type="text" id="sf-temp" name="sf_temp" inputmode="decimal" placeholder="36.5">
+              </div>
+              <div>
+                <label for="sf-pulse">脈拍（回/分）</label>
+                <input type="text" id="sf-pulse" name="sf_pulse" inputmode="numeric" placeholder="70">
+              </div>
+            </div>
+            <div class="row2 field">
+              <div>
+                <label for="sf-bph">血圧　収縮期（mmHg）</label>
+                <input type="text" id="sf-bph" name="sf_bph" inputmode="numeric" placeholder="120">
+              </div>
+              <div>
+                <label for="sf-bpl">拡張期（mmHg）</label>
+                <input type="text" id="sf-bpl" name="sf_bpl" inputmode="numeric" placeholder="80">
+              </div>
+            </div>
+            <div class="field" style="max-width:50%">
+              <label for="sf-spo2">酸素飽和度 SpO₂（%）</label>
+              <input type="text" id="sf-spo2" name="sf_spo2" inputmode="numeric" placeholder="98">
+            </div>
+          </div>
+
+          <!-- 希望するケア・申し送り -->
+          <div class="card">
+            <div class="sec-bar sec-self" role="heading" aria-level="2">次の援助者への希望・申し送り事項</div>
+            <p class="caution" role="note">
+              緊急度の高い内容は冒頭に【要確認】と記入してください
+            </p>
+            <div class="mic-row">
+              <textarea id="sf-okuri" name="sf_okuri" rows="7"
+                        placeholder="希望するケア内容・体調の補足・次の援助者への申し送り（音声または入力）"
+                        aria-label="次の援助者への希望・申し送り事項。緊急の場合は冒頭に要確認と入力してください。音声入力するには右のマイクボタンを押してください"></textarea>
+              <button type="button" class="mic-btn" onclick="startVoice('sf-okuri',this)"
+                      aria-label="申し送り・希望事項の音声入力を開始">🎤</button>
+            </div>
+          </div>
+
+          <!-- ピン留め -->
+          <div class="card">
+            <div class="check-item" style="background:var(--cc-hdr);border-radius:8px;padding:12px">
+              <input type="checkbox" id="sf-pin" name="sf_pin">
+              <label for="sf-pin" style="font-size:1rem;font-weight:600;color:#7a4f00">
+                📌　この申告をホーム画面にピン留めする
+              </label>
+            </div>
+            <p style="font-size:0.8125rem;color:var(--txt-sub);margin-top:8px">
+              オンにすると、次の援助者がアプリを開いた際にホーム画面の最上部に表示されます（最大3件・新しいものが優先されます）。ピン留めの解除はこの画面から編集してのみ可能です。
+            </p>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn-secondary" onclick="clearSelfForm()">クリア</button>
+            <button type="submit" id="sf-save-btn" class="btn-primary" style="flex:1">申告を保存する</button>
+          </div>
+
+        </form>
+      </div>
+    </main>
+
     <!-- ===== 過去ログ ===== -->
     <main id="page-log" class="page"
           role="main" aria-label="過去ログ画面">
@@ -1289,19 +1529,20 @@
 
     /* ─── ページ切り替え ─────────────────────────── */
     function showPage(name) {
-      ['home', 'form', 'log'].forEach(p => {
+      ['home', 'form', 'log', 'self'].forEach(p => {
         const page = document.getElementById('page-' + p);
         const tab  = document.getElementById('tab-' + p);
-        const active = (p === name);
-        page.classList.toggle('active', active);
-        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        if (page) page.classList.toggle('active', p === name);
+        if (tab)  tab.setAttribute('aria-selected', p === name ? 'true' : 'false');
       });
       if (name === 'home') renderHome();
       if (name === 'log')  renderLog();
       /* VoiceOver向け：新しいページの最初のフォーカス可能要素へ移動 */
-      const firstFocusable = document.getElementById('page-' + name)
-        .querySelector('button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])');
-      if (firstFocusable) setTimeout(() => firstFocusable.focus(), 80);
+      const pg = document.getElementById('page-' + name);
+      if (pg) {
+        const firstFocusable = pg.querySelector('button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) setTimeout(() => firstFocusable.focus(), 80);
+      }
     }
 
     /* ─── バッジHTML ─────────────────────────────── */
@@ -1338,9 +1579,29 @@
     function renderHome() {
       const records = getRecords();
 
-      /* 対象者ごとに最新記録を取得 */
+      /* ── ピン留めされた本人・家族申告を表示（最大3件・新しい順） ── */
+      const pinned = records
+        .filter(r => r.is_self_report && r.pinned)
+        .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
+        .slice(0, 3);
+      const pinnedSec  = document.getElementById('sec-pinned');
+      const pinnedList = document.getElementById('pinned-list');
+      if (pinned.length > 0) {
+        pinnedSec.style.display = '';
+        pinnedList.innerHTML = pinned.map(r => {
+          const subj = r.sf_subject || r.subject || '旦';
+          return `<div role="listitem" style="border-top:1px solid var(--border);padding:10px 0 4px">` +
+            `<div class="prev-meta" style="color:#7a4f00">${escHtml(r.date)}　${escHtml(subj)}</div>` +
+            (r.sf_okuri ? `<div class="prev-body">${escHtml(r.sf_okuri)}</div>` : '') +
+            `</div>`;
+        }).join('');
+      } else {
+        pinnedSec.style.display = 'none';
+      }
+
+      /* 対象者ごとに最新記録を取得（本人申告を除く） */
       function lastOf(subj) {
-        const filtered = records.filter(r => (r.subject || '旦') === subj);
+        const filtered = records.filter(r => !r.is_self_report && (r.subject || '旦') === subj);
         return filtered.length > 0 ? filtered[filtered.length - 1] : null;
       }
 
@@ -1427,27 +1688,85 @@
 
       el.innerHTML = records.map((r, i) => {
         const timeStr = [r.start, r.end].filter(Boolean).join('～');
-        return `<div class="log-item" role="listitem">` +
+        const isSelf  = !!r.is_self_report;
+        const selfSubj = isSelf ? (r.sf_subject || r.subject || '旦') : null;
+        return `<div class="log-item" role="listitem"` +
+          (isSelf ? ' style="border-color:#f0a830;border-width:2px"' : '') + `>` +
           `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">` +
           `<span class="log-meta">${escHtml(r.date)}${timeStr ? '　' + escHtml(timeStr) : ''}</span>` +
-          `${svcBadge(r.svctype)}` +
+          (isSelf
+            ? `<span class="badge badge-self">📌本人・家族申告${r.pinned ? '（ピン留め中）' : ''}</span>`
+            : svcBadge(r.svctype)) +
           `</div>` +
-          `<div class="log-staff">${escHtml(r.staff || r.office || '（担当者不明）')}` +
-          `　<span style="font-size:0.8125rem;color:var(--txt-sub)">${escHtml(r.subject || '旦')}</span></div>` +
-          (r.okuri   ? `<div class="log-snippet">${escHtml(r.okuri)}</div>` : '') +
-          (r.undone  ? `<div class="log-snippet" style="color:var(--danger)">未実施：${escHtml(r.undone)}</div>` : '') +
+          (isSelf
+            ? `<div class="log-staff">${escHtml(selfSubj)}からの申告</div>` +
+              (r.sf_okuri ? `<div class="log-snippet">${escHtml(r.sf_okuri)}</div>` : '')
+            : `<div class="log-staff">${escHtml(r.staff || r.office || '（担当者不明）')}` +
+              `　<span style="font-size:0.8125rem;color:var(--txt-sub)">${escHtml(r.subject || '旦')}</span></div>` +
+              (r.okuri  ? `<div class="log-snippet">${escHtml(r.okuri)}</div>` : '') +
+              (r.undone ? `<div class="log-snippet" style="color:var(--danger)">未実施：${escHtml(r.undone)}</div>` : '')) +
           `<div style="display:flex;gap:8px;margin-top:4px">` +
           `<button class="btn-secondary" style="font-size:0.875rem;padding:7px 12px"` +
-          ` onclick='viewDetail("${escAttr(r.id)}")'` +
+          ` onclick='${isSelf ? `viewSelfDetail("${escAttr(r.id)}")` : `viewDetail("${escAttr(r.id)}")`}'` +
           ` aria-label="${escHtml(r.date)}の記録を詳細表示">詳細</button>` +
           `<button class="btn-secondary" style="font-size:0.875rem;padding:7px 12px"` +
-          ` onclick='editRecord("${escAttr(r.id)}")'` +
+          ` onclick='${isSelf ? `editSelfRecord("${escAttr(r.id)}")` : `editRecord("${escAttr(r.id)}")`}'` +
           ` aria-label="${escHtml(r.date)}の記録を編集">編集</button>` +
           `<button class="btn-danger" style="font-size:0.875rem;padding:7px 12px"` +
           ` onclick='deleteRecord("${escAttr(r.id)}")'` +
           ` aria-label="${escHtml(r.date)}の記録を削除">削除</button>` +
           `</div></div>`;
       }).join('');
+    }
+
+    /* ─── 本人申告の詳細モーダル ───────────────────── */
+    function viewSelfDetail(id) {
+      const r = getRecords().find(x => x.id === id);
+      if (!r) return;
+      currentPrintRecord = id;
+      const subj = r.sf_subject || r.subject || '旦';
+      const isSanae = subj === '早南江';
+      const timeStr = [r.start, r.end].filter(Boolean).join('～');
+      const bpStr = (r.sf_bph && r.sf_bpl) ? r.sf_bph + '/' + r.sf_bpl + ' mmHg' : '';
+
+      const rows = [
+        ['日付',           r.date],
+        ['申告者',         subj],
+        ['記録時刻',       timeStr],
+        ['ピン留め',       r.pinned ? 'ホーム画面にピン留め中' : ''],
+        ...(!isSanae ? [
+          ['体調全般',     r.sf_condition],
+          ['気分',         r.sf_mood],
+          ['食事・水分',   r.sf_food],
+          ['見えにくさ',   r.sf_vision],
+          ['視覚困りごと', r.sf_vision_note],
+        ] : [
+          ['体調全般（早南江）',    r.sf_s_condition],
+          ['動悸・胸部症状',        r.sf_cardiac ? r.sf_cardiac + (r.sf_cardiac_note ? '：' + r.sf_cardiac_note : '') : ''],
+          ['腰痛・股関節痛',        r.sf_joint   ? r.sf_joint   + (r.sf_joint_note   ? '：' + r.sf_joint_note   : '') : ''],
+          ['食事・水分（早南江）',  r.sf_s_food],
+        ]),
+        ['体温（参考）',    r.sf_temp  ? r.sf_temp  + ' ℃'    : ''],
+        ['血圧（参考）',    bpStr],
+        ['脈拍（参考）',    r.sf_pulse ? r.sf_pulse + ' 回/分' : ''],
+        ['SpO₂（参考）',   r.sf_spo2  ? r.sf_spo2  + ' %'    : ''],
+        ['希望・申し送り', r.sf_okuri],
+      ].filter(([, v]) => v);
+
+      document.getElementById('modal-content').innerHTML =
+        `<p style="margin-bottom:10px">` +
+        `<span class="badge badge-self" style="margin-right:6px">📌本人・家族申告</span>` +
+        `${escHtml(r.date)}　${escHtml(subj)}</p>` +
+        `<table class="detail-table" aria-label="本人申告の詳細">` +
+        rows.map(([k, v]) =>
+          `<tr><td class="dt-key">${escHtml(k)}</td><td class="dt-val">${escHtml(v)}</td></tr>`
+        ).join('') +
+        `</table>`;
+
+      const overlay = document.getElementById('modal-overlay');
+      overlay.setAttribute('aria-label', '本人・家族申告の詳細');
+      overlay.classList.add('open');
+      setTimeout(() => overlay.querySelector('button').focus(), 80);
     }
 
     /* ─── 詳細モーダル ───────────────────────────── */
@@ -1730,31 +2049,30 @@
       const r = getRecords().find(x => x.id === currentPrintRecord);
       if (!r) return;
 
-      document.getElementById('print-area').innerHTML = buildPrintArea(r);
+      // 本人申告か援助者記録かで印刷レイアウトを切り替え
+      document.getElementById('print-area').innerHTML =
+        r.is_self_report ? buildSelfPrintArea(r) : buildPrintArea(r);
 
-      // PDF保存時のファイル名を「日付_開始時刻_担当者.pdf」にするため
-      // window.print()前後でdocument.titleを一時変更する
-      const datePart  = (r.date  || '').replace(/-/g, '');        // 例: 20250426
-      const timePart  = (r.start || '').replace(/:/g, '');        // 例: 1115
-      const staffPart = (r.staff || r.office || '').replace(/[/\\:*?"<>|\s]/g, '_'); // ファイル名不可文字を_に
-      const parts     = [datePart, timePart, staffPart].filter(Boolean);
-      const fileName  = parts.join('_') || '引き継ぎ連絡票';
+      // PDF保存時のファイル名
+      const datePart  = (r.date  || '').replace(/-/g, '');
+      const timePart  = (r.start || '').replace(/:/g, '');
+      const namePart  = r.is_self_report
+        ? (r.sf_subject || r.subject || '本人申告').replace(/[/\\:*?"<>|\s]/g, '_')
+        : (r.staff || r.office || '').replace(/[/\\:*?"<>|\s]/g, '_');
+      const parts    = [datePart, timePart, namePart].filter(Boolean);
+      const fileName = parts.join('_') || (r.is_self_report ? '引き継ぎ連絡票_本人家族申告' : '引き継ぎ連絡票');
 
-      const originalTitle  = document.title;
+      const originalTitle = document.title;
       document.title = fileName;
-
       announce('印刷ダイアログを開きます。PDFで保存するとファイル名は' + fileName + 'になります。');
 
       setTimeout(() => {
         window.print();
-        // 印刷ダイアログを閉じた後にtitleを元に戻す
-        // afterprint イベントで確実に復元
         const restore = () => {
           document.title = originalTitle;
           window.removeEventListener('afterprint', restore);
         };
         window.addEventListener('afterprint', restore);
-        // afterprintが発火しないブラウザへの保険（3秒後に復元）
         setTimeout(() => { document.title = originalTitle; }, 3000);
       }, 150);
     }
@@ -2400,6 +2718,229 @@
     }
 
     /* ─── エスケープ ─────────────────────────────── */
+    /* ─── 本人・家族申告 ─────────────────────────── */
+    const PIN_MAX = 3; // ピン留め最大件数
+
+    function startSelfReport() {
+      // 今日の日付をセット
+      document.getElementById('sf-date').value = new Date().toISOString().slice(0, 10);
+      updateSelfForm();
+      showPage('self');
+    }
+
+    // 申告者切り替えでフォームを更新
+    function updateSelfForm() {
+      const subj    = document.getElementById('sf-subject').value;
+      const isSanae = subj === '早南江';
+      const danSec   = document.getElementById('sf-sec-dan');
+      const sanaeSec = document.getElementById('sf-sec-sanae');
+      danSec.style.display   = isSanae ? 'none' : '';
+      sanaeSec.style.display = isSanae ? '' : 'none';
+      // disabled制御
+      danSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = isSanae; });
+      sanaeSec.querySelectorAll('input,textarea').forEach(el => { el.disabled = !isSanae; });
+    }
+
+    function clearSelfForm() {
+      document.getElementById('self-form').reset();
+      document.getElementById('sf-date').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('sf-save-btn').textContent = '申告を保存する';
+      selfEditingId = null;
+      updateSelfForm();
+      announce('フォームをクリアしました');
+    }
+
+    let selfEditingId = null; // 本人申告の編集中ID
+
+    function saveSelfReport(e) {
+      e.preventDefault();
+      const form    = document.getElementById('self-form');
+      const dateVal = document.getElementById('sf-date').value;
+      if (!dateVal) {
+        announce('日付を入力してください');
+        document.getElementById('sf-date').focus();
+        return;
+      }
+
+      const subj    = document.getElementById('sf-subject').value;
+      const doPin   = document.getElementById('sf-pin').checked;
+      const valOf2  = (name) => { const el = form.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
+      const txt     = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+      const rec = {
+        id:            selfEditingId || (Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6)),
+        savedAt:       Date.now(),
+        is_self_report: true,
+        pinned:        doPin,
+        sf_subject:    subj,
+        subject:       subj,
+        date:          dateVal,
+        start:         document.getElementById('sf-start').value,
+        end:           document.getElementById('sf-end').value,
+        // 旦の体調
+        sf_condition:  valOf2('sf_condition'),
+        sf_mood:       valOf2('sf_mood'),
+        sf_food:       valOf2('sf_food'),
+        sf_vision:     valOf2('sf_vision'),
+        sf_vision_note: txt('sf-vision-note'),
+        // 早南江の体調
+        sf_s_condition: valOf2('sf_s_condition'),
+        sf_cardiac:     valOf2('sf_cardiac'),
+        sf_cardiac_note: txt('sf-cardiac-note'),
+        sf_joint:       valOf2('sf_joint'),
+        sf_joint_note:  txt('sf-joint-note'),
+        sf_s_food:      valOf2('sf_s_food'),
+        // バイタル自己測定（参考値）
+        sf_temp:       txt('sf-temp'),
+        sf_bph:        txt('sf-bph'),
+        sf_bpl:        txt('sf-bpl'),
+        sf_pulse:      txt('sf-pulse'),
+        sf_spo2:       txt('sf-spo2'),
+        // 希望・申し送り
+        sf_okuri:      txt('sf-okuri'),
+      };
+
+      let records = getRecords();
+
+      // ピン留め上限管理：MAX件を超えたら古いものを自動解除
+      if (doPin) {
+        const pinned = records
+          .filter(r => r.is_self_report && r.pinned && r.id !== rec.id)
+          .sort((a, b) => (a.savedAt || 0) - (b.savedAt || 0));
+        while (pinned.length >= PIN_MAX) {
+          const oldest = pinned.shift();
+          const idx = records.findIndex(r => r.id === oldest.id);
+          if (idx !== -1) records[idx].pinned = false;
+        }
+      }
+
+      if (selfEditingId) {
+        const idx = records.findIndex(r => r.id === selfEditingId);
+        if (idx !== -1) {
+          rec.savedAt = records[idx].savedAt;
+          rec.editedAt = Date.now();
+          records[idx] = rec;
+        }
+        saveRecords(records);
+        announce('申告を更新しました。');
+      } else {
+        records.push(rec);
+        saveRecords(records);
+        announce('申告を保存しました。' + (doPin ? 'ホーム画面にピン留めしました。' : ''));
+      }
+
+      clearSelfForm();
+      showPage('home');
+    }
+
+    // 過去ログから本人申告の編集
+    function editSelfRecord(id) {
+      const r = getRecords().find(x => x.id === id);
+      if (!r) return;
+      selfEditingId = id;
+      currentPrintRecord = id;
+
+      document.getElementById('self-form').reset();
+      document.getElementById('sf-subject').value = r.sf_subject || r.subject || '旦';
+      document.getElementById('sf-date').value    = r.date    || '';
+      document.getElementById('sf-start').value   = r.start   || '';
+      document.getElementById('sf-end').value     = r.end     || '';
+      document.getElementById('sf-pin').checked   = !!r.pinned;
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+      const setR = (name, val) => { if (!val) return; const el = document.querySelector(`input[name="${name}"][value="${CSS.escape(val)}"]`); if (el) el.checked = true; };
+
+      setR('sf_condition',  r.sf_condition);
+      setR('sf_mood',       r.sf_mood);
+      setR('sf_food',       r.sf_food);
+      setR('sf_vision',     r.sf_vision);
+      set('sf-vision-note', r.sf_vision_note);
+      setR('sf_s_condition', r.sf_s_condition);
+      setR('sf_cardiac',    r.sf_cardiac);
+      set('sf-cardiac-note', r.sf_cardiac_note);
+      setR('sf_joint',      r.sf_joint);
+      set('sf-joint-note',  r.sf_joint_note);
+      setR('sf_s_food',     r.sf_s_food);
+      set('sf-temp',        r.sf_temp);
+      set('sf-bph',         r.sf_bph);
+      set('sf-bpl',         r.sf_bpl);
+      set('sf-pulse',       r.sf_pulse);
+      set('sf-spo2',        r.sf_spo2);
+      set('sf-okuri',       r.sf_okuri);
+
+      updateSelfForm();
+      document.getElementById('sf-save-btn').textContent = '変更を保存する';
+      showPage('self');
+      announce('本人申告の編集モードです。' + r.date + 'の記録を読み込みました。');
+    }
+
+    // 印刷用エリアの生成（本人申告版）
+    function buildSelfPrintArea(r) {
+      const subj = r.sf_subject || r.subject || '旦';
+      const isSanae = subj === '早南江';
+      const timeStr = [r.start, r.end].filter(Boolean).join(' ～ ');
+      const bpStr = (r.sf_bph && r.sf_bpl) ? r.sf_bph + '/' + r.sf_bpl + ' mmHg' : '';
+
+      function row(key, val) {
+        if (!val) return '';
+        return '<tr><td class="p-key">' + escHtml(key) + '</td><td class="p-val">' + escHtml(val) + '</td></tr>';
+      }
+
+      let html = '<h1>引き継ぎ連絡票（本人・家族申告）</h1>';
+
+      html += '<div class="p-section">' +
+        '<div class="p-sec-bar p-sec-common">基本情報</div>' +
+        '<table class="p-table">' +
+        '<tr><td class="p-key">日付</td><td class="p-val">' + escHtml(r.date) + '</td>' +
+        '<td class="p-key">記録時刻</td><td class="p-val">' + escHtml(timeStr) + '</td></tr>' +
+        '<tr><td class="p-key">申告者</td><td class="p-val" colspan="3">' + escHtml(subj) + '</td></tr>' +
+        (r.pinned ? '<tr><td class="p-key">ピン留め</td><td class="p-val" colspan="3">ホーム画面にピン留めあり</td></tr>' : '') +
+        '</table></div>';
+
+      if (!isSanae) {
+        html += '<div class="p-section">' +
+          '<div class="p-sec-bar p-sec-common">体調・状態（旦）</div>' +
+          '<table class="p-table">' +
+          row('体調全般',   r.sf_condition) +
+          row('気分',       r.sf_mood) +
+          row('食事・水分', r.sf_food) +
+          row('見えにくさ', r.sf_vision ? r.sf_vision + (r.sf_vision_note ? '：' + r.sf_vision_note : '') : '') +
+          '</table></div>';
+      } else {
+        html += '<div class="p-section">' +
+          '<div class="p-sec-bar p-sec-common">体調・状態（早南江）</div>' +
+          '<table class="p-table">' +
+          row('体調全般',       r.sf_s_condition) +
+          row('動悸・胸部症状', r.sf_cardiac ? r.sf_cardiac + (r.sf_cardiac_note ? '：' + r.sf_cardiac_note : '') : '') +
+          row('腰痛・股関節痛', r.sf_joint ? r.sf_joint + (r.sf_joint_note ? '：' + r.sf_joint_note : '') : '') +
+          row('食事・水分',     r.sf_s_food) +
+          '</table></div>';
+      }
+
+      if (r.sf_temp || r.sf_bph || r.sf_pulse || r.sf_spo2) {
+        html += '<div class="p-section">' +
+          '<div class="p-sec-bar p-sec-common">バイタル自己測定（参考値）</div>' +
+          '<table class="p-table"><tr class="p-vital-row">' +
+          '<td class="p-key">体温</td><td class="p-val">' + escHtml(r.sf_temp ? r.sf_temp + ' ℃' : '') + '</td>' +
+          '<td class="p-key">血圧</td><td class="p-val">' + escHtml(bpStr) + '</td>' +
+          '<td class="p-key">脈拍</td><td class="p-val">' + escHtml(r.sf_pulse ? r.sf_pulse + ' 回/分' : '') + '</td>' +
+          '<td class="p-key">SpO₂</td><td class="p-val">' + escHtml(r.sf_spo2 ? r.sf_spo2 + ' %' : '') + '</td>' +
+          '</tr></table></div>';
+      }
+
+      if (r.sf_okuri) {
+        html += '<div class="p-section">' +
+          '<div class="p-sec-bar p-sec-common">次の援助者への希望・申し送り事項</div>' +
+          '<table class="p-table"><tr><td class="p-val p-okuri-val" colspan="2">' +
+          escHtml(r.sf_okuri) + '</td></tr></table></div>';
+      }
+
+      html += '<p class="p-note">※ 緊急度の高い内容には「【要確認】」と記入してください。</p>';
+      html += '<p class="p-note" style="margin-top:4pt">本記録は本人・家族による申告です。援助者による記録とは区別して管理されています。</p>';
+
+      return html;
+    }
+
     function escHtml(s) {
       if (!s) return '';
       return String(s)
