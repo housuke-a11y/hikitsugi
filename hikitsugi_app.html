@@ -1555,14 +1555,6 @@
                 aria-label="記録データをJSONファイルとしてエクスポートします">
           記録データをエクスポート（バックアップ）
         </button>
-        <button class="btn-secondary" onclick="triggerImport()"
-                aria-label="バックアップJSONファイルからデータをインポートします">
-          記録データをインポート（復元）
-        </button>
-        <!-- 隠しファイル入力（インポート用） -->
-        <input type="file" id="import-file-input" accept=".json"
-               style="display:none" aria-hidden="true"
-               onchange="onImportFileSelected(event)">
         <button class="btn-danger" onclick="deleteAllData()"
                 aria-label="すべての記録データを削除します。この操作は元に戻せません">
           すべての記録を削除する
@@ -1588,57 +1580,40 @@
     </div>
   </div>
 
-  <!-- ===== インポートモーダル ===== -->
-  <div id="import-modal" role="dialog" aria-modal="true"
-       aria-labelledby="import-modal-title"
+  <!-- ===== エクスポートモーダル（iOS Safari対応） ===== -->
+  <div id="export-modal" role="dialog" aria-modal="true"
+       aria-labelledby="export-modal-title"
        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
               z-index:200;align-items:flex-start;justify-content:center;
               padding:20px;padding-top:calc(20px + env(safe-area-inset-top));
               overflow-y:auto">
     <div style="background:var(--surface);border-radius:var(--rad-lg);
                 width:100%;max-width:500px;padding:20px;margin-top:20px">
-      <h2 id="import-modal-title" class="card-title" style="margin-bottom:12px">
-        インポート方法の選択
+      <h2 id="export-modal-title" class="card-title" style="margin-bottom:8px">
+        エクスポートデータ
       </h2>
-      <p id="import-modal-summary" style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:14px"></p>
-      <fieldset style="border:none;padding:0;margin-bottom:16px">
-        <legend style="font-size:0.9375rem;font-weight:600;margin-bottom:10px">
-          インポート方法
-        </legend>
-        <div class="check-group grp-common" role="radiogroup" aria-label="インポート方法を選択してください">
-          <div class="check-item">
-            <input type="radio" name="import-mode" id="import-merge" value="merge" checked>
-            <label for="import-merge">
-              <span style="font-weight:600">統合</span>
-              <span style="display:block;font-size:0.8125rem;color:var(--txt-sub)">
-                既存の記録・設定にJSONの内容を追加します。同じIDの記録は上書きされます。
-              </span>
-            </label>
-          </div>
-          <div class="check-item">
-            <input type="radio" name="import-mode" id="import-overwrite" value="overwrite">
-            <label for="import-overwrite">
-              <span style="font-weight:600">すべて上書き</span>
-              <span style="display:block;font-size:0.8125rem;color:var(--txt-sub)">
-                既存のすべての記録・設定を削除してJSONの内容に置き換えます。
-              </span>
-            </label>
-          </div>
-        </div>
-      </fieldset>
-      <p id="import-warn" style="font-size:0.875rem;color:var(--danger);margin-bottom:12px;display:none">
-        ⚠️ 「すべて上書き」を選択しています。現在の記録・設定はすべて削除されます。
+      <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+        iOSではファイルの直接保存ができないため、以下のJSONデータをコピーして
+        メモアプリ等に貼り付けて保存してください。
+        ファイル名：<span id="export-filename"></span>
       </p>
-      <div style="display:flex;gap:8px">
-        <button class="btn-secondary" style="flex:1"
-                onclick="cancelImport()"
-                aria-label="インポートをキャンセルして設定画面に戻ります">
-          キャンセル
-        </button>
+      <textarea id="export-json-area" rows="10" readonly
+                aria-label="エクスポートするJSONデータ。コピーして保存してください"
+                style="width:100%;font-size:0.75rem;font-family:monospace;
+                       resize:vertical;border:1px solid var(--border);
+                       border-radius:var(--rad-md);padding:8px;
+                       background:var(--bg);color:var(--txt)"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn-primary" style="flex:1"
-                onclick="executeImport()"
-                aria-label="選択した方法でインポートを実行します">
-          OK
+                onclick="copyExportData()"
+                id="export-copy-btn"
+                aria-label="JSONデータをクリップボードにコピーします">
+          コピーする
+        </button>
+        <button class="btn-secondary" style="flex:1"
+                onclick="closeExportModal()"
+                aria-label="エクスポートモーダルを閉じます">
+          閉じる
         </button>
       </div>
     </div>
@@ -3436,166 +3411,75 @@
     }
 
     // ── データ管理 ─────────────────────────────────────
-    // インポートファイル選択後に読み込んだデータを一時保持
-    let _importData = null;
-
-    function triggerImport() {
-      // ファイル入力をリセットしてから開く（同じファイルを再選択できるように）
-      const input = document.getElementById('import-file-input');
-      input.value = '';
-      input.click();
-    }
-
-    function onImportFileSelected(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          // 基本的な構造チェック
-          if (!data || typeof data !== 'object') throw new Error('不正なファイル形式');
-          // records・schedule・offices・staffのいずれかが含まれていればOK
-          if (!Array.isArray(data.records) &&
-              !data.schedule && !data.offices && !data.staff) {
-            throw new Error('引き継ぎ連絡票のバックアップファイルではありません');
-          }
-          _importData = data;
-
-          // モーダルのサマリー表示を更新
-          const recCount   = Array.isArray(data.records)  ? data.records.length   : 0;
-          const schedCount = Array.isArray(data.schedule) ? data.schedule.length  : 0;
-          const offCount   = Array.isArray(data.offices)  ? data.offices.length   : 0;
-          const staffCount = Array.isArray(data.staff)    ? data.staff.length     : 0;
-          const exported   = data.exportedAt
-            ? new Date(data.exportedAt).toLocaleString('ja-JP') : '不明';
-
-          document.getElementById('import-modal-summary').textContent =
-            `ファイル: ${escHtml(file.name)}\n` +
-            `エクスポート日時: ${exported}\n` +
-            `記録: ${recCount}件　スケジュール: ${schedCount}件　` +
-            `事業所: ${offCount}件　担当者: ${staffCount}件`;
-
-          // ラジオを「統合」にリセット
-          document.getElementById('import-merge').checked = true;
-          document.getElementById('import-warn').style.display = 'none';
-
-          // モーダルを開く
-          const modal = document.getElementById('import-modal');
-          modal.style.display = 'flex';
-          setTimeout(() => document.getElementById('import-merge').focus(), 80);
-          announce('インポートファイルを読み込みました。インポート方法を選択してOKを押してください。');
-        } catch(err) {
-          _importData = null;
-          announce('ファイルの読み込みに失敗しました：' + err.message);
-          alert('ファイルの読み込みに失敗しました。\n' + err.message);
-        }
-      };
-      reader.readAsText(file, 'UTF-8');
-    }
-
-    // 「すべて上書き」選択時に警告を表示
-    document.addEventListener('change', (e) => {
-      if (e.target.name === 'import-mode') {
-        const warn = document.getElementById('import-warn');
-        if (warn) warn.style.display = e.target.value === 'overwrite' ? '' : 'none';
-      }
-    });
-
-    function cancelImport() {
-      _importData = null;
-      document.getElementById('import-modal').style.display = 'none';
-      announce('インポートをキャンセルしました。設定画面に戻ります。');
-      // フォーカスをインポートボタンへ戻す
-      setTimeout(() => {
-        const btn = document.querySelector('button[onclick="triggerImport()"]');
-        if (btn) btn.focus();
-      }, 80);
-    }
-
-    function executeImport() {
-      if (!_importData) return;
-      const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'merge';
-
-      try {
-        if (mode === 'overwrite') {
-          // ── 上書きモード ──────────────────────────────
-          if (_importData.records)  saveRecords(_importData.records);
-          else                      try { localStorage.removeItem(STORE_KEY); } catch(e) {}
-          if (_importData.schedule) saveSetting(SCHED_KEY,  _importData.schedule);
-          else                      try { localStorage.removeItem(SCHED_KEY);  } catch(e) {}
-          if (_importData.offices)  saveSetting(OFFICE_KEY, _importData.offices);
-          else                      try { localStorage.removeItem(OFFICE_KEY); } catch(e) {}
-          if (_importData.staff)    saveSetting(STAFF_KEY,  _importData.staff);
-          else                      try { localStorage.removeItem(STAFF_KEY);  } catch(e) {}
-
-        } else {
-          // ── 統合モード ────────────────────────────────
-          // 記録：既存のIDと重複するものは新しいもので上書き
-          if (Array.isArray(_importData.records) && _importData.records.length > 0) {
-            const existing = getRecords();
-            const existMap = new Map(existing.map(r => [r.id, r]));
-            _importData.records.forEach(r => { if (r.id) existMap.set(r.id, r); });
-            saveRecords([...existMap.values()]);
-          }
-          // スケジュール：time+dow+svcが同一のものは重複として除去
-          if (Array.isArray(_importData.schedule) && _importData.schedule.length > 0) {
-            const existing = getScheduleItems() || [];
-            const key = (x) => `${x.dow}|${x.time}|${x.svc}`;
-            const existKeys = new Set(existing.map(key));
-            const merged = [...existing,
-              ..._importData.schedule.filter(x => !existKeys.has(key(x)))];
-            saveSetting(SCHED_KEY, merged);
-          }
-          // 事業所：valueが同一のものは重複として除去
-          if (Array.isArray(_importData.offices) && _importData.offices.length > 0) {
-            const existing = getOfficeItems();
-            const existVals = new Set(existing.map(o => o.value));
-            const merged = [...existing,
-              ..._importData.offices.filter(o => !existVals.has(o.value))];
-            saveSetting(OFFICE_KEY, merged);
-          }
-          // 担当者：名前が同一のものは重複として除去
-          if (Array.isArray(_importData.staff) && _importData.staff.length > 0) {
-            const existing = getStaffItems();
-            const existSet = new Set(existing);
-            const merged = [...existing,
-              ..._importData.staff.filter(n => !existSet.has(n))];
-            saveSetting(STAFF_KEY, merged);
-          }
-        }
-
-        // 後処理：モーダルを閉じて設定画面を再描画
-        _importData = null;
-        document.getElementById('import-modal').style.display = 'none';
-        renderSettings();
-        renderHome();
-        const msg = mode === 'overwrite'
-          ? 'インポート（上書き）が完了しました。'
-          : 'インポート（統合）が完了しました。';
-        announce(msg);
-        alert(msg);
-
-      } catch(err) {
-        announce('インポートに失敗しました：' + err.message);
-        alert('インポートに失敗しました。\n' + err.message);
-      }
-    }
-
-    function deleteAllData() {
+    function exportData() {
       const records  = getRecords();
       const schedule = getScheduleItems();
       const offices  = getOfficeItems();
       const staff    = getStaffItems();
-      const data = { exportedAt: new Date().toISOString(), records, schedule, offices, staff };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = '引き継ぎ連絡票_バックアップ_' + new Date().toISOString().slice(0,10) + '.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      announce('エクスポートしました');
+      const data     = { exportedAt: new Date().toISOString(), records, schedule, offices, staff };
+      const json     = JSON.stringify(data, null, 2);
+      const fileName = '引き継ぎ連絡票_バックアップ_' + new Date().toISOString().slice(0, 10) + '.json';
+
+      // iOSのSafariかどうかを判定
+      const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) && !!navigator.userAgent.match(/AppleWebKit/);
+
+      if (!isIOS) {
+        // PC・Android：Blob URLでダウンロード
+        try {
+          const blob = new Blob([json], { type: 'application/json' });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          a.href     = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          announce('エクスポートしました');
+          return;
+        } catch(e) {
+          // 失敗したらiOSと同じフォールバックへ
+        }
+      }
+
+      // iOS Safari・フォールバック：モーダルにJSONを表示してコピー
+      document.getElementById('export-json-area').value  = json;
+      document.getElementById('export-filename').textContent = fileName;
+      document.getElementById('export-copy-btn').textContent = 'コピーする';
+      const modal = document.getElementById('export-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => document.getElementById('export-copy-btn').focus(), 80);
+      announce('JSONデータをモーダルに表示しました。コピーするボタンを押してクリップボードにコピーしてください。');
+    }
+
+    function copyExportData() {
+      const area = document.getElementById('export-json-area');
+      area.select();
+      // iOS対応のコピー処理
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(area.value).then(() => {
+          const btn = document.getElementById('export-copy-btn');
+          btn.textContent = 'コピーしました ✓';
+          setTimeout(() => { btn.textContent = 'コピーする'; }, 2500);
+          announce('クリップボードにコピーしました。メモアプリ等に貼り付けて保存してください。');
+        }).catch(() => {
+          // execCommandフォールバック
+          document.execCommand('copy');
+          announce('コピーしました');
+        });
+      } else {
+        document.execCommand('copy');
+        announce('コピーしました');
+      }
+    }
+
+    function closeExportModal() {
+      document.getElementById('export-modal').style.display = 'none';
+      announce('エクスポートモーダルを閉じました');
+      setTimeout(() => {
+        const btn = document.querySelector('button[onclick="exportData()"]');
+        if (btn) btn.focus();
+      }, 80);
     }
 
     function deleteAllData() {
@@ -3621,9 +3505,11 @@
     /* ─── キーボード操作 ─────────────────────────── */
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        // インポートモーダルが開いていればキャンセル、そうでなければ詳細モーダルを閉じる
+        const exportModal = document.getElementById('export-modal');
         const importModal = document.getElementById('import-modal');
-        if (importModal && importModal.style.display !== 'none') {
+        if (exportModal && exportModal.style.display !== 'none') {
+          closeExportModal();
+        } else if (importModal && importModal.style.display !== 'none') {
           cancelImport();
         } else {
           closeModal();
