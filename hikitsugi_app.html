@@ -1382,6 +1382,15 @@
         <h2 class="card-title">絞り込み・並べ替え</h2>
         <div class="filter-row">
           <div>
+            <label for="filter-record">記録種別</label>
+            <select id="filter-record" onchange="onRecordFilterChange()"
+                    aria-label="記録の種別で絞り込み">
+              <option value="all">すべての記録</option>
+              <option value="self">本人・家族の申告記録</option>
+              <option value="staff">援助職の記録</option>
+            </select>
+          </div>
+          <div>
             <label for="filter-type">サービス種別</label>
             <select id="filter-type" onchange="renderLog()"
                     aria-label="サービス種別で絞り込み">
@@ -1645,14 +1654,21 @@
 
     /* ─── 過去ログ描画 ───────────────────────────── */
     function renderLog() {
+      const recordKind = document.getElementById('filter-record').value; // 'all' | 'self' | 'staff'
       const type    = document.getElementById('filter-type').value;
       const sort    = document.getElementById('filter-sort').value;
       const subject = document.getElementById('filter-subject').value;
       const period  = document.getElementById('filter-period').value; // 'all' | '7' | '14' | '30' | '90'
 
       let records = getRecords();
-      if (type)    records = records.filter(r => normalizeSvc(r.svctype).includes(type));
-      if (subject) records = records.filter(r => (r.subject || '旦') === subject);
+
+      // 記録種別フィルタ（最初に適用）
+      if (recordKind === 'self')  records = records.filter(r => !!r.is_self_report);
+      if (recordKind === 'staff') records = records.filter(r => !r.is_self_report);
+
+      // サービス種別フィルタ（援助職記録のみ有効。本人申告はサービス種別を持たない）
+      if (type && recordKind !== 'self') records = records.filter(r => normalizeSvc(r.svctype).includes(type));
+      if (subject) records = records.filter(r => (r.sf_subject || r.subject || '旦') === subject);
 
       // 期間フィルタ：訪問日(r.date)を基準に「本日から○日以内」で絞り込む
       if (period !== 'all') {
@@ -1717,6 +1733,20 @@
           ` aria-label="${escHtml(r.date)}の記録を削除">削除</button>` +
           `</div></div>`;
       }).join('');
+    }
+
+    // 記録種別フィルタ切り替え時：サービス種別フィルタのdisabled制御
+    function onRecordFilterChange() {
+      const kind   = document.getElementById('filter-record').value;
+      const typeSel = document.getElementById('filter-type');
+      const isSelf = kind === 'self';
+      typeSel.disabled = isSelf;
+      typeSel.style.opacity = isSelf ? '0.4' : '';
+      if (isSelf) typeSel.value = '';  // 本人申告選択時はサービス種別をリセット
+      announce(kind === 'self' ? '本人・家族の申告記録のみを表示します。サービス種別フィルタは無効です。'
+             : kind === 'staff' ? '援助職の記録のみを表示します。'
+             : 'すべての記録を表示します。');
+      renderLog();
     }
 
     /* ─── 本人申告の詳細モーダル ───────────────────── */
