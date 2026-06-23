@@ -580,13 +580,13 @@
               aria-controls="page-home" onclick="showPage('home')">
         ホーム
       </button>
-      <button role="tab" id="tab-form" aria-selected="false"
-              aria-controls="page-form" onclick="showPage('form')">
-        新規記録
-      </button>
       <button role="tab" id="tab-log" aria-selected="false"
               aria-controls="page-log" onclick="showPage('log')">
         過去ログ
+      </button>
+      <button role="tab" id="tab-settings" aria-selected="false"
+              aria-controls="page-settings" onclick="showPage('settings')">
+        設定
       </button>
     </nav>
 
@@ -684,9 +684,17 @@
           </div>
 
           <div class="field">
-            <label for="f-staff">担当者氏名</label>
-            <input type="text" id="f-staff" name="staff"
-                   placeholder="担当者氏名を入力" autocomplete="name">
+            <label for="f-staff-select">担当者氏名</label>
+            <select id="f-staff-select" name="staff_select"
+                    aria-label="担当者氏名を選択してください"
+                    onchange="onStaffSelectChange()">
+              <option value="">-- 選択してください --</option>
+            </select>
+            <div id="f-staff-custom-wrap" style="display:none;margin-top:6px">
+              <input type="text" id="f-staff-custom" name="staff_custom"
+                     placeholder="担当者氏名を入力"
+                     aria-label="一覧にない担当者氏名を入力してください">
+            </div>
           </div>
 
           <fieldset class="field" style="border:none;padding:0">
@@ -1449,6 +1457,121 @@
 
   </div><!-- /#app -->
 
+  <!-- ===== 設定 ===== -->
+  <main id="page-settings" class="page"
+        role="main" aria-label="設定画面">
+
+    <!-- ── スケジュール編集 ── -->
+    <section class="card" aria-labelledby="s-sched-heading">
+      <h2 class="card-title" id="s-sched-heading">週間定例訪問スケジュール</h2>
+      <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+        ホーム画面の「本日の定例訪問」に表示されます。
+      </p>
+      <div id="sched-list" role="list" aria-label="スケジュール一覧"></div>
+      <div style="margin-top:10px">
+        <div class="row2">
+          <div>
+            <label for="s-sched-day">曜日</label>
+            <select id="s-sched-day" aria-label="曜日を選択">
+              <option value="1">月曜</option>
+              <option value="2">火曜</option>
+              <option value="3">水曜</option>
+              <option value="4">木曜</option>
+              <option value="5">金曜</option>
+              <option value="6">土曜</option>
+              <option value="0">日曜</option>
+            </select>
+          </div>
+          <div>
+            <label for="s-sched-svc">サービス名</label>
+            <input type="text" id="s-sched-svc" placeholder="例：家事援助"
+                   aria-label="サービス名を入力">
+          </div>
+        </div>
+        <div class="row2 field">
+          <div>
+            <label for="s-sched-start">開始時刻</label>
+            <input type="time" id="s-sched-start">
+          </div>
+          <div>
+            <label for="s-sched-end">終了時刻</label>
+            <input type="time" id="s-sched-end">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addSchedItem()" style="margin-top:4px"
+                aria-label="スケジュールを追加">追加する</button>
+      </div>
+    </section>
+
+    <!-- ── 事業所一覧 ── -->
+    <section class="card" aria-labelledby="s-office-heading">
+      <h2 class="card-title" id="s-office-heading">事業所一覧</h2>
+      <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+        記録フォームの「事業所名」セレクトに表示されます。対象者（旦・早南江・両方）も設定できます。
+      </p>
+      <div id="office-list" role="list" aria-label="事業所一覧"></div>
+      <div style="margin-top:10px">
+        <div class="field">
+          <label for="s-office-name">事業所名</label>
+          <input type="text" id="s-office-name" placeholder="事業所名を入力"
+                 aria-label="追加する事業所名を入力">
+        </div>
+        <div class="field">
+          <label for="s-office-for">対象者</label>
+          <select id="s-office-for" aria-label="この事業所を利用する対象者">
+            <option value="both">両方（旦・早南江）</option>
+            <option value="dan">旦のみ</option>
+            <option value="sanae">早南江のみ</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="addOfficeItem()"
+                aria-label="事業所を追加">追加する</button>
+      </div>
+    </section>
+
+    <!-- ── 担当者一覧 ── -->
+    <section class="card" aria-labelledby="s-staff-heading">
+      <h2 class="card-title" id="s-staff-heading">担当者一覧</h2>
+      <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:10px">
+        記録フォームの「担当者氏名」セレクトに表示されます。複数事業所に所属する担当者も1つの名前で管理できます。
+      </p>
+      <div id="staff-list" role="list" aria-label="担当者一覧"></div>
+      <div style="margin-top:10px">
+        <div class="field">
+          <label for="s-staff-name">担当者名</label>
+          <input type="text" id="s-staff-name" placeholder="担当者名を入力"
+                 aria-label="追加する担当者名を入力">
+        </div>
+        <button class="btn-primary" onclick="addStaffItem()"
+                aria-label="担当者を追加">追加する</button>
+      </div>
+    </section>
+
+    <!-- ── データ管理 ── -->
+    <section class="card" aria-labelledby="s-data-heading">
+      <h2 class="card-title" id="s-data-heading">データ管理</h2>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn-secondary" onclick="exportData()"
+                aria-label="記録データをJSONファイルとしてエクスポートします">
+          記録データをエクスポート（バックアップ）
+        </button>
+        <button class="btn-secondary" onclick="triggerImport()"
+                aria-label="バックアップJSONファイルからデータをインポートします">
+          記録データをインポート（復元）
+        </button>
+        <!-- 隠しファイル入力（インポート用） -->
+        <input type="file" id="import-file-input" accept=".json"
+               style="display:none" aria-hidden="true"
+               onchange="onImportFileSelected(event)">
+        <button class="btn-danger" onclick="deleteAllData()"
+                aria-label="すべての記録データを削除します。この操作は元に戻せません">
+          すべての記録を削除する
+        </button>
+      </div>
+    </section>
+
+  </main>
+
   <!-- ===== 詳細モーダル ===== -->
   <div id="modal-overlay" role="dialog" aria-modal="true"
        aria-labelledby="modal-title">
@@ -1465,6 +1588,62 @@
     </div>
   </div>
 
+  <!-- ===== インポートモーダル ===== -->
+  <div id="import-modal" role="dialog" aria-modal="true"
+       aria-labelledby="import-modal-title"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+              z-index:200;align-items:flex-start;justify-content:center;
+              padding:20px;padding-top:calc(20px + env(safe-area-inset-top));
+              overflow-y:auto">
+    <div style="background:var(--surface);border-radius:var(--rad-lg);
+                width:100%;max-width:500px;padding:20px;margin-top:20px">
+      <h2 id="import-modal-title" class="card-title" style="margin-bottom:12px">
+        インポート方法の選択
+      </h2>
+      <p id="import-modal-summary" style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:14px"></p>
+      <fieldset style="border:none;padding:0;margin-bottom:16px">
+        <legend style="font-size:0.9375rem;font-weight:600;margin-bottom:10px">
+          インポート方法
+        </legend>
+        <div class="check-group grp-common" role="radiogroup" aria-label="インポート方法を選択してください">
+          <div class="check-item">
+            <input type="radio" name="import-mode" id="import-merge" value="merge" checked>
+            <label for="import-merge">
+              <span style="font-weight:600">統合</span>
+              <span style="display:block;font-size:0.8125rem;color:var(--txt-sub)">
+                既存の記録・設定にJSONの内容を追加します。同じIDの記録は上書きされます。
+              </span>
+            </label>
+          </div>
+          <div class="check-item">
+            <input type="radio" name="import-mode" id="import-overwrite" value="overwrite">
+            <label for="import-overwrite">
+              <span style="font-weight:600">すべて上書き</span>
+              <span style="display:block;font-size:0.8125rem;color:var(--txt-sub)">
+                既存のすべての記録・設定を削除してJSONの内容に置き換えます。
+              </span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+      <p id="import-warn" style="font-size:0.875rem;color:var(--danger);margin-bottom:12px;display:none">
+        ⚠️ 「すべて上書き」を選択しています。現在の記録・設定はすべて削除されます。
+      </p>
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary" style="flex:1"
+                onclick="cancelImport()"
+                aria-label="インポートをキャンセルして設定画面に戻ります">
+          キャンセル
+        </button>
+        <button class="btn-primary" style="flex:1"
+                onclick="executeImport()"
+                aria-label="選択した方法でインポートを実行します">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 印刷専用エリア（@media printのみ表示） ===== -->
   <div id="print-area" aria-hidden="true"></div>
 
@@ -1474,8 +1653,25 @@
     const SIX_MONTHS  = 180 * 24 * 60 * 60 * 1000;
     const MEDICAL_SVC = new Set(['訪問看護','訪問鍼灸','訪問診療','訪問服薬指導','訪問リハビリ']);
 
-    /* 週間定例スケジュール（0=日、1=月、…、6=土） */
-    const SCHEDULE = {
+    // 設定データのストレージキー
+    const SCHED_KEY  = 'hikitsugi_schedule';
+    const OFFICE_KEY = 'hikitsugi_offices';
+    const STAFF_KEY  = 'hikitsugi_staff';
+
+    // ── 設定データのロード・セーブ ────────────────────────
+    function loadSetting(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch(e) { return fallback; }
+    }
+    function saveSetting(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+    }
+
+    // ── スケジュール（設定保存版） ──────────────────────────
+    // 既存のハードコードを初期値として使い、設定で上書き可能にする
+    const SCHEDULE_DEFAULT = {
       1: [
         { time: '10:15–11:00', svc: '訪問鍼灸' },
         { time: '10:30–12:00', svc: '家事援助' },
@@ -1513,6 +1709,24 @@
       ],
     };
 
+    // 設定から読み込んだスケジュールを取得
+    // フォーマット: [{dow:1, time:'10:15–11:00', svc:'家事援助'}, ...]
+    function getScheduleItems() {
+      return loadSetting(SCHED_KEY, null);
+    }
+    // スケジュールをホーム画面で使う形式に変換
+    function getScheduleForDisplay() {
+      const items = getScheduleItems();
+      if (!items) return SCHEDULE_DEFAULT; // 未設定時はデフォルト値
+      // dow別にグループ化
+      const result = {};
+      items.forEach(item => {
+        if (!result[item.dow]) result[item.dow] = [];
+        result[item.dow].push({ time: item.time, svc: item.svc });
+      });
+      return result;
+    }
+
     /* ─── ストレージ ─────────────────────────────── */
     function getRecords() {
       try {
@@ -1538,14 +1752,15 @@
 
     /* ─── ページ切り替え ─────────────────────────── */
     function showPage(name) {
-      ['home', 'form', 'log', 'self'].forEach(p => {
+      ['home', 'form', 'log', 'self', 'settings'].forEach(p => {
         const page = document.getElementById('page-' + p);
         const tab  = document.getElementById('tab-' + p);
         if (page) page.classList.toggle('active', p === name);
         if (tab)  tab.setAttribute('aria-selected', p === name ? 'true' : 'false');
       });
-      if (name === 'home') renderHome();
-      if (name === 'log')  renderLog();
+      if (name === 'home')     renderHome();
+      if (name === 'log')      renderLog();
+      if (name === 'settings') renderSettings();
       /* VoiceOver向け：新しいページの最初のフォーカス可能要素へ移動 */
       const pg = document.getElementById('page-' + name);
       if (pg) {
@@ -1637,7 +1852,7 @@
 
       /* 今日のスケジュール */
       const dow = new Date().getDay();
-      const sc  = SCHEDULE[dow] || [];
+      const sc  = getScheduleForDisplay()[dow] || [];
       const schedEl = document.getElementById('today-sched');
       if (sc.length === 0) {
         schedEl.innerHTML =
@@ -2124,7 +2339,21 @@
       document.getElementById('f-date').value   = r.date   || '';
       document.getElementById('f-start').value  = r.start  || '';
       document.getElementById('f-end').value    = r.end    || '';
-      document.getElementById('f-staff').value  = r.staff  || '';
+      // 担当者氏名の復元（セレクトにあれば選択、なければカスタム入力）
+      updateStaffSelect(r.staff || '');
+      const staffSel = document.getElementById('f-staff-select');
+      if (staffSel && r.staff) {
+        // セレクトに値があるか確認
+        const opt = staffSel.querySelector(`option[value="${CSS.escape(r.staff)}"]`);
+        if (opt) {
+          staffSel.value = r.staff;
+        } else {
+          staffSel.value = '__other__';
+          const ci = document.getElementById('f-staff-custom');
+          if (ci) ci.value = r.staff;
+        }
+        onStaffSelectChange();
+      }
       // f-office はupdateSubject()→updateOffice()で選択肢が再構築されるため
       // updateSubject呼び出し後に値をセットする（後述）
 
@@ -2283,7 +2512,7 @@
         start:     document.getElementById('f-start').value,
         end:       document.getElementById('f-end').value,
         office:    document.getElementById('f-office').value.trim(),
-        staff:     document.getElementById('f-staff').value.trim(),
+        staff:     getStaffValue(),
         subject:   valOf(form, 'subject') || '旦',
         svctype:   svctypeSel,  // 配列で保存（後方互換：旧データは文字列のまま）
         svcTimes:  svcTimes,    // { サービス名: {start, end} }（任意）
@@ -2361,32 +2590,101 @@
 
     /* ─── 対象者連動：フォーム切り替え ────────────────── */
     /* ─── 事業所データ ───────────────────────────── */
-    const OFFICES = {
-      // 旦のみ利用
+    const OFFICES_DEFAULT = {
       dan: [
-        { value: '日本ブラインドサッカー協会', label: '日本ブラインドサッカー協会' },
-        { value: 'ビーフラット',               label: 'ビーフラット' },
-        { value: 'まるかケア',                 label: 'まるかケア' },
-        { value: '中央区立福祉センター',       label: '中央区立福祉センター' },
+        { value: '日本ブラインドサッカー協会', label: '日本ブラインドサッカー協会', for: 'dan' },
+        { value: 'ビーフラット',               label: 'ビーフラット',               for: 'dan' },
+        { value: 'まるかケア',                 label: 'まるかケア',                 for: 'dan' },
+        { value: '中央区立福祉センター',       label: '中央区立福祉センター',       for: 'dan' },
       ],
-      // 早南江のみ利用
       sanae: [
-        { value: '晴海苑', label: '晴海苑' },
+        { value: '晴海苑', label: '晴海苑', for: 'sanae' },
       ],
-      // 両方が利用
       both: [
-        { value: '総合介護サービス',                     label: '総合介護サービス' },
-        { value: 'ケアリッツ月島',                       label: 'ケアリッツ月島' },
-        { value: '訪問介護事業所サクラ',                 label: '訪問介護事業所サクラ' },
-        { value: 'ベストリハ訪問看護ステーション銀座',   label: 'ベストリハ訪問看護ステーション銀座' },
-        { value: 'ベストリハ訪問看護ステーション四谷',   label: 'ベストリハ訪問看護ステーション四谷' },
-        { value: '大江戸江東クリニック',                 label: '大江戸江東クリニック' },
-        { value: 'コトブキ調剤薬局足立店',               label: 'コトブキ調剤薬局足立店' },
-        { value: '株式会社クラウドケア',                   label: '株式会社クラウドケア' },
+        { value: '総合介護サービス',                     label: '総合介護サービス',                     for: 'both' },
+        { value: 'ケアリッツ月島',                       label: 'ケアリッツ月島',                       for: 'both' },
+        { value: '訪問介護事業所サクラ',                 label: '訪問介護事業所サクラ',                 for: 'both' },
+        { value: 'ベストリハ訪問看護ステーション銀座',   label: 'ベストリハ訪問看護ステーション銀座',   for: 'both' },
+        { value: 'ベストリハ訪問看護ステーション四谷',   label: 'ベストリハ訪問看護ステーション四谷',   for: 'both' },
+        { value: '大江戸江東クリニック',                 label: '大江戸江東クリニック',                 for: 'both' },
+        { value: 'コトブキ調剤薬局足立店',               label: 'コトブキ調剤薬局足立店',               for: 'both' },
+        { value: '株式会社クラウドケア',                 label: '株式会社クラウドケア',                 for: 'both' },
       ],
     };
 
+    function getOfficeItems() {
+      const saved = loadSetting(OFFICE_KEY, null);
+      if (saved) return saved;
+      return [
+        ...OFFICES_DEFAULT.dan,
+        ...OFFICES_DEFAULT.sanae,
+        ...OFFICES_DEFAULT.both,
+      ];
+    }
+
+    function getStaffItems() {
+      return loadSetting(STAFF_KEY, []);
+    }
+
+    function updateStaffSelect(currentVal) {
+      const sel = document.getElementById('f-staff-select');
+      if (!sel) return;
+      const items = getStaffItems();
+      sel.innerHTML =
+        '<option value="">-- 選択してください --</option>' +
+        items.sort((a, b) => a.localeCompare(b, 'ja'))
+             .map(name =>
+               `<option value="${escHtml(name)}"` +
+               (name === currentVal ? ' selected' : '') +
+               `>${escHtml(name)}</option>`
+             ).join('') +
+        '<option value="__other__">一覧にない（直接入力）</option>';
+      onStaffSelectChange();
+    }
+
+    function onStaffSelectChange() {
+      const sel  = document.getElementById('f-staff-select');
+      const wrap = document.getElementById('f-staff-custom-wrap');
+      if (!sel || !wrap) return;
+      const isOther = sel.value === '__other__';
+      wrap.style.display = isOther ? '' : 'none';
+      const input = document.getElementById('f-staff-custom');
+      if (input) { input.disabled = !isOther; if (!isOther) input.value = ''; }
+    }
+
+    function getStaffValue() {
+      const sel = document.getElementById('f-staff-select');
+      if (!sel) return '';
+      if (sel.value === '__other__' || sel.value === '') {
+        const custom = document.getElementById('f-staff-custom');
+        return custom ? custom.value.trim() : '';
+      }
+      return sel.value;
+    }
+
     function updateOffice(subj, currentVal) {
+      const isSanae = subj === '早南江';
+      const sel = document.getElementById('f-office');
+      if (!sel) return;
+
+      const all = getOfficeItems();
+      const options = all
+        .filter(o => o.for === 'both' || (isSanae ? o.for === 'sanae' : o.for === 'dan'))
+        .sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+
+      sel.innerHTML =
+        '<option value="">-- 選択してください --</option>' +
+        options.map(o =>
+          `<option value="${escHtml(o.value)}"` +
+          (o.value === currentVal ? ' selected' : '') +
+          `>${escHtml(o.label)}</option>`
+        ).join('') +
+        '<option value="__other__">一覧にない（直接入力）</option>';
+
+      // 事業所が「一覧にない」の場合のカスタム入力欄制御（将来拡張用）
+    }
+
+    function updateSubject(subj, currentVal) {
       const isSanae = subj === '早南江';
       const sel = document.getElementById('f-office');
       if (!sel) return;
@@ -2685,8 +2983,9 @@
       if (lbl) lbl.textContent = '';
       const btn = document.getElementById('save-btn');
       if (btn) btn.textContent = '記録を保存する';
-      updateSubject();     // 対象者リセット（旦に戻す）とフォーム表示の初期化
-      updateDoneChecks();  // チェック項目のリセットとセクション表示の初期化を兼ねる
+      updateStaffSelect('');  // 担当者セレクトをリセット
+      updateSubject();        // 対象者リセット（旦に戻す）とフォーム表示の初期化
+      updateDoneChecks();     // チェック項目のリセットとセクション表示の初期化を兼ねる
       announce('フォームをクリアしました。サービス種別を選択すると関係のない入力欄が非表示になります。');
     }
 
@@ -2971,6 +3270,341 @@
       return html;
     }
 
+    /* ─── 設定画面 ─────────────────────────────────── */
+    const DAY_NAMES = { 0:'日曜', 1:'月曜', 2:'火曜', 3:'水曜', 4:'木曜', 5:'金曜', 6:'土曜' };
+
+    function renderSettings() {
+      renderSchedList();
+      renderOfficeList();
+      renderStaffList();
+    }
+
+    // ── スケジュール ──────────────────────────────────
+    function renderSchedList() {
+      const items = getScheduleItems() || (() => {
+        // デフォルトをflat配列に変換
+        const arr = [];
+        Object.entries(SCHEDULE_DEFAULT).forEach(([dow, list]) => {
+          list.forEach(item => arr.push({ dow: Number(dow), time: item.time, svc: item.svc }));
+        });
+        return arr;
+      })();
+      const el = document.getElementById('sched-list');
+      if (!el) return;
+      if (items.length === 0) {
+        el.innerHTML = '<p style="font-size:0.875rem;color:var(--txt-sub)">スケジュールがありません</p>';
+        return;
+      }
+      const sorted = [...items].sort((a, b) => a.dow !== b.dow ? a.dow - b.dow : (a.time||'').localeCompare(b.time||''));
+      el.innerHTML = sorted.map((item, i) =>
+        `<div role="listitem" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">` +
+        `<span style="min-width:50px;font-size:0.875rem;font-weight:600">${escHtml(DAY_NAMES[item.dow]||'')}</span>` +
+        `<span style="min-width:110px;font-size:0.875rem;color:var(--txt-sub)">${escHtml(item.time||'')}</span>` +
+        `<span style="flex:1;font-size:0.9375rem">${escHtml(item.svc||'')}</span>` +
+        `<button class="btn-danger" style="font-size:0.8125rem;padding:4px 10px;min-height:36px"` +
+        ` onclick="deleteSchedItem(${i})" aria-label="${escHtml(DAY_NAMES[item.dow]||'')}${escHtml(item.svc||'')}を削除">削除</button>` +
+        `</div>`
+      ).join('');
+    }
+
+    function addSchedItem() {
+      const dow   = Number(document.getElementById('s-sched-day').value);
+      const svc   = document.getElementById('s-sched-svc').value.trim();
+      const start = document.getElementById('s-sched-start').value;
+      const end   = document.getElementById('s-sched-end').value;
+      if (!svc) { announce('サービス名を入力してください'); return; }
+      const time  = start && end ? start + '–' + end : (start || end || '');
+      // 既存or初期値から配列を作る
+      let items = getScheduleItems();
+      if (!items) {
+        items = [];
+        Object.entries(SCHEDULE_DEFAULT).forEach(([d, list]) => {
+          list.forEach(item => items.push({ dow: Number(d), time: item.time, svc: item.svc }));
+        });
+      }
+      items.push({ dow, time, svc });
+      saveSetting(SCHED_KEY, items);
+      document.getElementById('s-sched-svc').value   = '';
+      document.getElementById('s-sched-start').value = '';
+      document.getElementById('s-sched-end').value   = '';
+      renderSchedList();
+      announce(DAY_NAMES[dow] + ' ' + svc + 'を追加しました');
+    }
+
+    function deleteSchedItem(idx) {
+      let items = getScheduleItems();
+      if (!items) {
+        items = [];
+        Object.entries(SCHEDULE_DEFAULT).forEach(([d, list]) => {
+          list.forEach(item => items.push({ dow: Number(d), time: item.time, svc: item.svc }));
+        });
+      }
+      const sorted = [...items].sort((a, b) => a.dow !== b.dow ? a.dow - b.dow : (a.time||'').localeCompare(b.time||''));
+      const target = sorted[idx];
+      const fi = items.findIndex(x => x.dow === target.dow && x.time === target.time && x.svc === target.svc);
+      if (fi !== -1) items.splice(fi, 1);
+      saveSetting(SCHED_KEY, items);
+      renderSchedList();
+      announce('削除しました');
+    }
+
+    // ── 事業所 ────────────────────────────────────────
+    function renderOfficeList() {
+      const items = getOfficeItems();
+      const el = document.getElementById('office-list');
+      if (!el) return;
+      if (items.length === 0) {
+        el.innerHTML = '<p style="font-size:0.875rem;color:var(--txt-sub)">事業所がありません</p>';
+        return;
+      }
+      const sorted = [...items].sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+      const forLabel = { both:'両方', dan:'旦のみ', sanae:'早南江のみ' };
+      el.innerHTML = sorted.map((item, i) =>
+        `<div role="listitem" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">` +
+        `<span style="flex:1;font-size:0.9375rem">${escHtml(item.label)}</span>` +
+        `<span style="font-size:0.8125rem;color:var(--txt-sub);white-space:nowrap">${escHtml(forLabel[item.for]||'')}</span>` +
+        `<button class="btn-danger" style="font-size:0.8125rem;padding:4px 10px;min-height:36px"` +
+        ` onclick="deleteOfficeItem('${escAttr(item.value)}')" aria-label="${escHtml(item.label)}を削除">削除</button>` +
+        `</div>`
+      ).join('');
+    }
+
+    function addOfficeItem() {
+      const name = document.getElementById('s-office-name').value.trim();
+      const forV = document.getElementById('s-office-for').value;
+      if (!name) { announce('事業所名を入力してください'); return; }
+      const items = getOfficeItems();
+      if (items.some(o => o.value === name)) { announce('すでに登録されています'); return; }
+      items.push({ value: name, label: name, for: forV });
+      saveSetting(OFFICE_KEY, items);
+      document.getElementById('s-office-name').value = '';
+      renderOfficeList();
+      // フォームのセレクトも更新
+      const subj = document.querySelector('#record-form input[name="subject"]:checked');
+      updateOffice(subj ? subj.value : '旦', '');
+      announce(name + 'を追加しました');
+    }
+
+    function deleteOfficeItem(val) {
+      let items = getOfficeItems();
+      items = items.filter(o => o.value !== val);
+      saveSetting(OFFICE_KEY, items);
+      renderOfficeList();
+      const subj = document.querySelector('#record-form input[name="subject"]:checked');
+      updateOffice(subj ? subj.value : '旦', '');
+      announce('削除しました');
+    }
+
+    // ── 担当者 ────────────────────────────────────────
+    function renderStaffList() {
+      const items = getStaffItems();
+      const el = document.getElementById('staff-list');
+      if (!el) return;
+      if (items.length === 0) {
+        el.innerHTML = '<p style="font-size:0.875rem;color:var(--txt-sub)">担当者が登録されていません</p>';
+        return;
+      }
+      const sorted = [...items].sort((a, b) => a.localeCompare(b, 'ja'));
+      el.innerHTML = sorted.map(name =>
+        `<div role="listitem" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">` +
+        `<span style="flex:1;font-size:0.9375rem">${escHtml(name)}</span>` +
+        `<button class="btn-danger" style="font-size:0.8125rem;padding:4px 10px;min-height:36px"` +
+        ` onclick="deleteStaffItem('${escAttr(name)}')" aria-label="${escHtml(name)}を削除">削除</button>` +
+        `</div>`
+      ).join('');
+    }
+
+    function addStaffItem() {
+      const name = document.getElementById('s-staff-name').value.trim();
+      if (!name) { announce('担当者名を入力してください'); return; }
+      const items = getStaffItems();
+      if (items.includes(name)) { announce('すでに登録されています'); return; }
+      items.push(name);
+      saveSetting(STAFF_KEY, items);
+      document.getElementById('s-staff-name').value = '';
+      renderStaffList();
+      updateStaffSelect('');
+      announce(name + 'を追加しました');
+    }
+
+    function deleteStaffItem(name) {
+      let items = getStaffItems().filter(n => n !== name);
+      saveSetting(STAFF_KEY, items);
+      renderStaffList();
+      updateStaffSelect('');
+      announce('削除しました');
+    }
+
+    // ── データ管理 ─────────────────────────────────────
+    // インポートファイル選択後に読み込んだデータを一時保持
+    let _importData = null;
+
+    function triggerImport() {
+      // ファイル入力をリセットしてから開く（同じファイルを再選択できるように）
+      const input = document.getElementById('import-file-input');
+      input.value = '';
+      input.click();
+    }
+
+    function onImportFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          // 基本的な構造チェック
+          if (!data || typeof data !== 'object') throw new Error('不正なファイル形式');
+          // records・schedule・offices・staffのいずれかが含まれていればOK
+          if (!Array.isArray(data.records) &&
+              !data.schedule && !data.offices && !data.staff) {
+            throw new Error('引き継ぎ連絡票のバックアップファイルではありません');
+          }
+          _importData = data;
+
+          // モーダルのサマリー表示を更新
+          const recCount   = Array.isArray(data.records)  ? data.records.length   : 0;
+          const schedCount = Array.isArray(data.schedule) ? data.schedule.length  : 0;
+          const offCount   = Array.isArray(data.offices)  ? data.offices.length   : 0;
+          const staffCount = Array.isArray(data.staff)    ? data.staff.length     : 0;
+          const exported   = data.exportedAt
+            ? new Date(data.exportedAt).toLocaleString('ja-JP') : '不明';
+
+          document.getElementById('import-modal-summary').textContent =
+            `ファイル: ${escHtml(file.name)}\n` +
+            `エクスポート日時: ${exported}\n` +
+            `記録: ${recCount}件　スケジュール: ${schedCount}件　` +
+            `事業所: ${offCount}件　担当者: ${staffCount}件`;
+
+          // ラジオを「統合」にリセット
+          document.getElementById('import-merge').checked = true;
+          document.getElementById('import-warn').style.display = 'none';
+
+          // モーダルを開く
+          const modal = document.getElementById('import-modal');
+          modal.style.display = 'flex';
+          setTimeout(() => document.getElementById('import-merge').focus(), 80);
+          announce('インポートファイルを読み込みました。インポート方法を選択してOKを押してください。');
+        } catch(err) {
+          _importData = null;
+          announce('ファイルの読み込みに失敗しました：' + err.message);
+          alert('ファイルの読み込みに失敗しました。\n' + err.message);
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // 「すべて上書き」選択時に警告を表示
+    document.addEventListener('change', (e) => {
+      if (e.target.name === 'import-mode') {
+        const warn = document.getElementById('import-warn');
+        if (warn) warn.style.display = e.target.value === 'overwrite' ? '' : 'none';
+      }
+    });
+
+    function cancelImport() {
+      _importData = null;
+      document.getElementById('import-modal').style.display = 'none';
+      announce('インポートをキャンセルしました。設定画面に戻ります。');
+      // フォーカスをインポートボタンへ戻す
+      setTimeout(() => {
+        const btn = document.querySelector('button[onclick="triggerImport()"]');
+        if (btn) btn.focus();
+      }, 80);
+    }
+
+    function executeImport() {
+      if (!_importData) return;
+      const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'merge';
+
+      try {
+        if (mode === 'overwrite') {
+          // ── 上書きモード ──────────────────────────────
+          if (_importData.records)  saveRecords(_importData.records);
+          else                      try { localStorage.removeItem(STORE_KEY); } catch(e) {}
+          if (_importData.schedule) saveSetting(SCHED_KEY,  _importData.schedule);
+          else                      try { localStorage.removeItem(SCHED_KEY);  } catch(e) {}
+          if (_importData.offices)  saveSetting(OFFICE_KEY, _importData.offices);
+          else                      try { localStorage.removeItem(OFFICE_KEY); } catch(e) {}
+          if (_importData.staff)    saveSetting(STAFF_KEY,  _importData.staff);
+          else                      try { localStorage.removeItem(STAFF_KEY);  } catch(e) {}
+
+        } else {
+          // ── 統合モード ────────────────────────────────
+          // 記録：既存のIDと重複するものは新しいもので上書き
+          if (Array.isArray(_importData.records) && _importData.records.length > 0) {
+            const existing = getRecords();
+            const existMap = new Map(existing.map(r => [r.id, r]));
+            _importData.records.forEach(r => { if (r.id) existMap.set(r.id, r); });
+            saveRecords([...existMap.values()]);
+          }
+          // スケジュール：time+dow+svcが同一のものは重複として除去
+          if (Array.isArray(_importData.schedule) && _importData.schedule.length > 0) {
+            const existing = getScheduleItems() || [];
+            const key = (x) => `${x.dow}|${x.time}|${x.svc}`;
+            const existKeys = new Set(existing.map(key));
+            const merged = [...existing,
+              ..._importData.schedule.filter(x => !existKeys.has(key(x)))];
+            saveSetting(SCHED_KEY, merged);
+          }
+          // 事業所：valueが同一のものは重複として除去
+          if (Array.isArray(_importData.offices) && _importData.offices.length > 0) {
+            const existing = getOfficeItems();
+            const existVals = new Set(existing.map(o => o.value));
+            const merged = [...existing,
+              ..._importData.offices.filter(o => !existVals.has(o.value))];
+            saveSetting(OFFICE_KEY, merged);
+          }
+          // 担当者：名前が同一のものは重複として除去
+          if (Array.isArray(_importData.staff) && _importData.staff.length > 0) {
+            const existing = getStaffItems();
+            const existSet = new Set(existing);
+            const merged = [...existing,
+              ..._importData.staff.filter(n => !existSet.has(n))];
+            saveSetting(STAFF_KEY, merged);
+          }
+        }
+
+        // 後処理：モーダルを閉じて設定画面を再描画
+        _importData = null;
+        document.getElementById('import-modal').style.display = 'none';
+        renderSettings();
+        renderHome();
+        const msg = mode === 'overwrite'
+          ? 'インポート（上書き）が完了しました。'
+          : 'インポート（統合）が完了しました。';
+        announce(msg);
+        alert(msg);
+
+      } catch(err) {
+        announce('インポートに失敗しました：' + err.message);
+        alert('インポートに失敗しました。\n' + err.message);
+      }
+    }
+
+    function deleteAllData() {
+      const records  = getRecords();
+      const schedule = getScheduleItems();
+      const offices  = getOfficeItems();
+      const staff    = getStaffItems();
+      const data = { exportedAt: new Date().toISOString(), records, schedule, offices, staff };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = '引き継ぎ連絡票_バックアップ_' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      announce('エクスポートしました');
+    }
+
+    function deleteAllData() {
+      if (!confirm('すべての記録データを削除します。この操作は元に戻せません。\n設定（スケジュール・事業所・担当者）は削除されません。\n\nよろしいですか？')) return;
+      try { localStorage.removeItem(STORE_KEY); } catch(e) {}
+      announce('すべての記録を削除しました');
+      renderHome();
+    }
+
     function escHtml(s) {
       if (!s) return '';
       return String(s)
@@ -2986,13 +3620,22 @@
 
     /* ─── キーボード操作 ─────────────────────────── */
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        // インポートモーダルが開いていればキャンセル、そうでなければ詳細モーダルを閉じる
+        const importModal = document.getElementById('import-modal');
+        if (importModal && importModal.style.display !== 'none') {
+          cancelImport();
+        } else {
+          closeModal();
+        }
+      }
     });
 
     /* ─── 初期化 ─────────────────────────────────── */
     document.getElementById('f-date').value =
       new Date().toISOString().slice(0, 10);
-    updateSubject();   // 対象者「旦」で初期化（早南江専用要素を非表示に）
+    updateStaffSelect('');  // 担当者セレクトを初期化
+    updateSubject();        // 対象者「旦」で初期化（早南江専用要素を非表示に）
     renderHome();
   </script>
 </body>
