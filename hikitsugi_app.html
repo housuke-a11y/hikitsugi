@@ -1562,6 +1562,10 @@
                 aria-label="記録データをJSONファイルとしてエクスポートします">
           記録データをエクスポート（バックアップ）
         </button>
+        <button class="btn-secondary" onclick="openImportModal()"
+                aria-label="バックアップしたJSONファイルから記録データをインポート（復元）します">
+          記録データをインポート（復元）
+        </button>
         <button class="btn-danger" onclick="deleteAllData()"
                 aria-label="すべての記録データを削除します。この操作は元に戻せません">
           すべての記録を削除する
@@ -1620,6 +1624,91 @@
         <button class="btn-secondary" style="flex:1"
                 onclick="closeExportModal()"
                 aria-label="エクスポートモーダルを閉じます">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== インポートモーダル（データ復元） ===== -->
+  <div id="import-modal" role="dialog" aria-modal="true"
+       aria-labelledby="import-modal-title"
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+              z-index:200;align-items:flex-start;justify-content:center;
+              padding:20px;padding-top:calc(20px + env(safe-area-inset-top));
+              overflow-y:auto">
+    <div style="background:var(--surface);border-radius:var(--rad-lg);
+                width:100%;max-width:500px;padding:20px;margin-top:20px">
+      <h2 id="import-modal-title" class="card-title" style="margin-bottom:8px" tabindex="-1">
+        データのインポート（復元）
+      </h2>
+      <p style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:12px">
+        エクスポートしたバックアップから記録データを復元します。
+        ファイルを選択するか、コピーしたJSONデータを下の欄に貼り付けてください。
+      </p>
+
+      <!-- ファイル選択（PC・Android向け） -->
+      <button class="btn-secondary" style="width:100%;margin-bottom:10px"
+              onclick="document.getElementById('import-file-input').click()"
+              aria-label="バックアップのJSONファイルを選択します">
+        JSONファイルを選択する
+      </button>
+      <input type="file" id="import-file-input" accept=".json,application/json"
+             style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"
+             aria-label="バックアップのJSONファイル"
+             onchange="handleImportFile(event)">
+
+      <!-- 貼り付け欄（iOS Safari向け） -->
+      <label for="import-json-area"
+             style="display:block;font-size:0.875rem;margin-bottom:4px">
+        または、JSONデータを貼り付け
+      </label>
+      <textarea id="import-json-area" rows="8"
+                placeholder="ここにバックアップのJSONを貼り付けてください"
+                aria-label="復元するJSONデータを貼り付けてください"
+                style="width:100%;font-size:0.75rem;font-family:monospace;
+                       resize:vertical;border:1px solid var(--border);
+                       border-radius:var(--rad-md);padding:8px;
+                       background:var(--bg);color:var(--txt)"></textarea>
+
+      <!-- 復元方法の選択 -->
+      <fieldset style="border:1px solid var(--border);border-radius:var(--rad-md);
+                       padding:10px;margin-top:12px">
+        <legend style="font-size:0.875rem;font-weight:600;padding:0 4px">復元方法</legend>
+        <div class="check-item">
+          <input type="radio" name="import-mode" id="import-mode-merge" value="merge" checked>
+          <label for="import-mode-merge">
+            追加（マージ）：現在のデータを残し、バックアップを統合する
+          </label>
+        </div>
+        <div class="check-item" style="margin-top:6px">
+          <input type="radio" name="import-mode" id="import-mode-replace" value="replace">
+          <label for="import-mode-replace">
+            置き換え：現在のデータをすべて削除し、バックアップで上書きする
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- 設定（スケジュール・事業所・担当者）も復元するか -->
+      <div class="check-item" style="margin-top:10px">
+        <input type="checkbox" id="import-include-settings" checked>
+        <label for="import-include-settings">
+          設定（スケジュール・事業所・担当者）も復元する
+        </label>
+      </div>
+
+      <p id="import-status" role="status" aria-live="polite"
+         style="font-size:0.875rem;color:var(--txt-sub);margin-top:10px;min-height:1.2em"></p>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-primary" style="flex:1"
+                onclick="runImport()"
+                aria-label="入力したデータを復元します">
+          復元する
+        </button>
+        <button class="btn-secondary" style="flex:1"
+                onclick="cancelImport()"
+                aria-label="インポートモーダルを閉じます">
           閉じる
         </button>
       </div>
@@ -3499,6 +3588,174 @@
       }, 80);
     }
 
+    /* ─── データインポート（復元） ─────────────────── */
+    function openImportModal() {
+      document.getElementById('import-json-area').value = '';
+      document.getElementById('import-file-input').value = '';
+      document.getElementById('import-status').textContent = '';
+      document.getElementById('import-mode-merge').checked = true;
+      document.getElementById('import-include-settings').checked = true;
+      const modal = document.getElementById('import-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => document.getElementById('import-modal-title').focus(), 80);
+      announce('インポートモーダルを開きました。ファイルを選択するか、JSONを貼り付けてください。');
+    }
+
+    function cancelImport() {
+      document.getElementById('import-modal').style.display = 'none';
+      announce('インポートモーダルを閉じました');
+      setTimeout(() => {
+        const btn = document.querySelector('button[onclick="openImportModal()"]');
+        if (btn) btn.focus();
+      }, 80);
+    }
+
+    // ファイル選択時：内容をテキストエリアに読み込む
+    function handleImportFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('import-json-area').value = e.target.result;
+        const status = document.getElementById('import-status');
+        status.textContent = 'ファイル「' + file.name + '」を読み込みました。復元するボタンを押してください。';
+      };
+      reader.onerror = () => {
+        const status = document.getElementById('import-status');
+        status.textContent = 'ファイルの読み込みに失敗しました。';
+      };
+      reader.readAsText(file);
+    }
+
+    // インポートデータの検証：正しい形なら data を返し、不正なら例外を投げる
+    function validateImportData(raw) {
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        throw new Error('JSONとして読み取れませんでした。データが壊れていないか確認してください。');
+      }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error('バックアップの形式が正しくありません。');
+      }
+      // records は必須・配列であること
+      if (!Array.isArray(data.records)) {
+        throw new Error('記録データ（records）が見つかりません。このアプリのバックアップか確認してください。');
+      }
+      // 各レコードが最低限 id を持つか（savedAt が無ければ補完）
+      data.records.forEach(r => {
+        if (!r || typeof r !== 'object') {
+          throw new Error('記録データの中に壊れた項目があります。');
+        }
+      });
+      // 設定系は任意。型だけ緩く確認する
+      if (data.schedule != null && !Array.isArray(data.schedule)) {
+        throw new Error('スケジュールデータの形式が正しくありません。');
+      }
+      if (data.offices != null && !Array.isArray(data.offices)) {
+        throw new Error('事業所データの形式が正しくありません。');
+      }
+      if (data.staff != null && !Array.isArray(data.staff)) {
+        throw new Error('担当者データの形式が正しくありません。');
+      }
+      return data;
+    }
+
+    // 復元実行
+    function runImport() {
+      const status = document.getElementById('import-status');
+      const raw = document.getElementById('import-json-area').value.trim();
+      if (!raw) {
+        status.textContent = 'データがありません。ファイルを選択するかJSONを貼り付けてください。';
+        announce('データがありません。');
+        return;
+      }
+
+      let data;
+      try {
+        data = validateImportData(raw);
+      } catch (e) {
+        status.textContent = 'エラー：' + e.message;
+        announce('インポートに失敗しました。' + e.message);
+        return;
+      }
+
+      const mode = (document.querySelector('input[name="import-mode"]:checked') || {}).value || 'merge';
+      const includeSettings = document.getElementById('import-include-settings').checked;
+
+      // savedAt 欠損を補完（古い・手編集データ対策）
+      const now = Date.now();
+      const incoming = data.records.map(r => ({
+        ...r,
+        savedAt: (typeof r.savedAt === 'number') ? r.savedAt : now,
+      }));
+
+      // 確認ダイアログ
+      const modeLabel = mode === 'replace'
+        ? '【置き換え】現在の記録をすべて削除して復元します'
+        : '【追加（マージ）】現在の記録に統合します';
+      const settingsLabel = includeSettings
+        ? '設定（スケジュール・事業所・担当者）も復元します。'
+        : '設定は復元しません（記録のみ）。';
+      const confirmMsg =
+        modeLabel + '\n' +
+        'バックアップ内の記録：' + incoming.length + '件\n' +
+        settingsLabel + '\n\nよろしいですか？';
+      if (!confirm(confirmMsg)) {
+        status.textContent = 'インポートを中止しました。';
+        announce('インポートを中止しました。');
+        return;
+      }
+
+      // ── 記録の復元 ──
+      let finalRecords;
+      let mergedCount = 0;
+      if (mode === 'replace') {
+        finalRecords = incoming;
+      } else {
+        // マージ：id をキーに統合。同一 idは新しい editedAt/savedAt を優先
+        const map = new Map();
+        const stamp = r => (typeof r.editedAt === 'number' ? r.editedAt : (r.savedAt || 0));
+        getRecords().forEach(r => map.set(r.id, r));
+        incoming.forEach(r => {
+          if (r.id == null) {                 // id 無しは常に新規追加
+            map.set('imported_' + now + '_' + Math.random().toString(36).slice(2), r);
+            return;
+          }
+          const existing = map.get(r.id);
+          if (!existing) { map.set(r.id, r); }
+          else {
+            mergedCount++;
+            if (stamp(r) >= stamp(existing)) map.set(r.id, r); // 新しい方を採用
+          }
+        });
+        finalRecords = Array.from(map.values());
+      }
+      saveRecords(finalRecords);
+
+      // ── 設定の復元 ──
+      if (includeSettings) {
+        if (Array.isArray(data.schedule)) saveSetting(SCHED_KEY, data.schedule);
+        if (Array.isArray(data.offices))  saveSetting(OFFICE_KEY, data.offices);
+        if (Array.isArray(data.staff))    saveSetting(STAFF_KEY, data.staff);
+      }
+
+      // ── 画面更新 ──
+      renderHome();
+      if (typeof renderLog === 'function') renderLog();
+      if (typeof renderSettings === 'function') renderSettings();
+      if (typeof updateStaffSelect === 'function') updateStaffSelect('');
+
+      const resultMsg = mode === 'replace'
+        ? finalRecords.length + '件の記録を復元しました（置き換え）。'
+        : finalRecords.length + '件になりました（' + incoming.length + '件を取り込み、うち' + mergedCount + '件は既存と統合）。';
+      status.textContent = '復元が完了しました。' + resultMsg;
+      announce('復元が完了しました。' + resultMsg);
+
+      // 完了後、少し待ってモーダルを閉じる
+      setTimeout(() => cancelImport(), 1800);
+    }
+
     function deleteAllData() {
       if (!confirm('すべての記録データを削除します。この操作は元に戻せません。\n設定（スケジュール・事業所・担当者）は削除されません。\n\nよろしいですか？')) return;
       try { localStorage.removeItem(STORE_KEY); } catch(e) {}
@@ -3523,8 +3780,11 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         const exportModal = document.getElementById('export-modal');
+        const importModal = document.getElementById('import-modal');
         if (exportModal && exportModal.style.display !== 'none') {
           closeExportModal();
+        } else if (importModal && importModal.style.display !== 'none') {
+          cancelImport();
         } else {
           closeModal();
         }
