@@ -694,6 +694,13 @@
               <input type="text" id="f-staff-custom" name="staff_custom"
                      placeholder="担当者氏名を入力"
                      aria-label="一覧にない担当者氏名を入力してください">
+              <button type="button" id="f-staff-add-btn"
+                      onclick="addStaffFromForm()"
+                      style="margin-top:6px;font-size:0.875rem;padding:7px 14px"
+                      class="btn-secondary"
+                      aria-label="入力した担当者名を担当者一覧に追加します">
+                担当者一覧に追加
+              </button>
             </div>
           </div>
 
@@ -3408,6 +3415,36 @@
       renderStaffList();
       updateStaffSelect('');
       announce('削除しました');
+    }
+
+    // 記録フォームの直接入力欄から担当者一覧に追加する
+    function addStaffFromForm() {
+      const input = document.getElementById('f-staff-custom');
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) {
+        announce('担当者名を入力してから追加ボタンを押してください');
+        input.focus();
+        return;
+      }
+      const items = getStaffItems();
+      if (items.includes(name)) {
+        announce(name + 'はすでに担当者一覧に登録されています');
+        return;
+      }
+      // 担当者一覧に追加して保存
+      items.push(name);
+      saveSetting(STAFF_KEY, items);
+      // セレクトを再構築して追加した担当者を自動選択
+      updateStaffSelect(name);
+      // セレクトで追加した名前を選択した状態にする
+      const sel = document.getElementById('f-staff-select');
+      if (sel) sel.value = name;
+      // カスタム入力欄を非表示に戻す
+      onStaffSelectChange();
+      // 設定画面の担当者一覧も更新（設定画面が開かれていた場合）
+      renderStaffList();
+      announce(name + 'を担当者一覧に追加しました。担当者名の選択欄で選択された状態になりました。');
     }
 
     // ── データ管理 ─────────────────────────────────────
