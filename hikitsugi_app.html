@@ -2666,26 +2666,6 @@
       // 事業所が「一覧にない」の場合のカスタム入力欄制御（将来拡張用）
     }
 
-    function updateSubject(subj, currentVal) {
-      const isSanae = subj === '早南江';
-      const sel = document.getElementById('f-office');
-      if (!sel) return;
-
-      // 対象者に応じた選択肢を組み立て
-      const options = [
-        ...OFFICES.both,
-        ...(isSanae ? OFFICES.sanae : OFFICES.dan),
-      ].sort((a, b) => a.label.localeCompare(b.label, 'ja'));
-
-      sel.innerHTML =
-        '<option value="">-- 選択してください --</option>' +
-        options.map(o =>
-          `<option value="${escHtml(o.value)}"` +
-          (o.value === currentVal ? ' selected' : '') +
-          `>${escHtml(o.label)}</option>`
-        ).join('');
-    }
-
     function updateSubject() {
       const form    = document.getElementById('record-form');
       const subjSel = form.querySelector('input[name="subject"]:checked');
@@ -3543,11 +3523,8 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         const exportModal = document.getElementById('export-modal');
-        const importModal = document.getElementById('import-modal');
         if (exportModal && exportModal.style.display !== 'none') {
           closeExportModal();
-        } else if (importModal && importModal.style.display !== 'none') {
-          cancelImport();
         } else {
           closeModal();
         }
