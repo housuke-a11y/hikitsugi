@@ -723,6 +723,7 @@
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc8" value="訪問リハビリ"><label for="svc8">訪問リハビリ</label></div>
               <div class="check-item svc-sanae-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc11" value="通院介助"><label for="svc11">通院介助</label></div>
               <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc10" value="就労支援特別事業"><label for="svc10">就労支援特別事業</label></div>
+              <div class="check-item svc-dan-only"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc15" value="活動随行"><label for="svc15">活動随行（自費・第三者負担）</label></div>
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc12" value="モニタリング"><label for="svc12">モニタリング</label></div>
               <div class="check-item"><input type="checkbox" name="svctype" onchange="updateDoneChecks()" id="svc9" value="その他"><label for="svc9">その他</label></div>
             </div>
@@ -1117,6 +1118,39 @@
               <div class="check-item"><input type="checkbox" id="sv6" name="done" value="その他"><label for="sv6">その他</label></div>
             </div>
           </fieldset>
+
+          <!-- 活動随行（自費・第三者負担）選択時のみ表示 -->
+          <div id="sec-katsudo-extra" style="display:none;margin-top:14px">
+            <fieldset style="border:none;padding:0" class="field">
+              <label for="f-katsudo-name">案件名・活動内容</label>
+              <div class="mic-row">
+                <textarea id="f-katsudo-name" name="katsudo_name" rows="2"
+                          placeholder="例：〇〇小学校 福祉体験授業（音声または入力）"
+                          aria-label="案件名・活動内容。音声入力するには右のマイクボタンを押してください"></textarea>
+                <button type="button" class="mic-btn"
+                        onclick="startVoice('f-katsudo-name', this)"
+                        aria-label="案件名・活動内容の音声入力を開始">🎤</button>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0" class="field">
+              <legend style="font-size:0.875rem;color:var(--txt-sub);margin-bottom:4px">費用負担元</legend>
+              <select id="f-katsudo-payer" name="katsudo_payer"
+                      aria-label="費用負担元を選択してください"
+                      onchange="toggleKatsudoPayerOther()">
+                <option value="">-- 選択してください --</option>
+                <option value="社会福祉協議会負担">社会福祉協議会負担</option>
+                <option value="中央区負担">中央区負担</option>
+                <option value="依頼元自己負担">依頼元自己負担</option>
+                <option value="その他">その他</option>
+              </select>
+              <div id="f-katsudo-payer-other-wrap" style="display:none;margin-top:6px">
+                <input type="text" id="f-katsudo-payer-other" name="katsudo_payer_other"
+                       placeholder="負担元・詳細を入力"
+                       aria-label="その他の場合の負担元・詳細を入力してください">
+              </div>
+            </fieldset>
+          </div>
         </div>
 
         <!-- 医療・投薬関連（医療職記入） -->
@@ -1422,6 +1456,7 @@
               <option>移動支援</option>
               <option>通院介助</option>
               <option>就労支援特別事業</option>
+              <option>活動随行</option>
               <option>モニタリング</option>
               <option>その他</option>
             </select>
@@ -1863,7 +1898,7 @@
       return svcs.map(svc => {
         let cls;
         if (MEDICAL_SVC.has(svc))         cls = 'badge-medical';
-        else if (svc === '就労支援特別事業' || svc === '移動支援') cls = 'badge-work';
+        else if (svc === '就労支援特別事業' || svc === '移動支援' || svc === '活動随行') cls = 'badge-work';
         else if (svc === 'モニタリング')  cls = 'badge-common';
         else                               cls = 'badge-helper';
         return `<span class="badge ${cls}" style="margin-right:2px">${escHtml(svc)}</span>`;
@@ -2137,6 +2172,9 @@
         ['疼痛・痺れ（早南江）',    r.s_pain ? r.s_pain + (r.spain_note ? '：' + r.spain_note : '') : ''],
         ['転倒・ヒヤリ（早南江）',  r.s_fall ? r.s_fall + (r.sfall_note ? '：' + r.sfall_note : '') : ''],
         ['実施サービス', (r.done || []).join('、')],
+        ['案件名・活動内容', r.katsudo_name],
+        ['費用負担元', r.katsudo_payer === 'その他' && r.katsudo_payer_other
+                       ? 'その他：' + r.katsudo_payer_other : r.katsudo_payer],
         ['処方薬変更',   r.rx],
         ['変更内容',     r.rx_note],
         ['申し送り事項', [r.okuri, r.undone ? '【旧:未実施】' + r.undone : '']
@@ -2172,7 +2210,7 @@
     const PRINT_RULES = {
       vital:   ['訪問看護', '訪問診療', '訪問リハビリ'],
       jisshi:  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
-                '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助', '就労支援特別事業', 'その他'],
+                '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助', '就労支援特別事業', '活動随行', 'その他'],
       haha:    ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸',
                 '訪問診療', '訪問服薬指導', '訪問リハビリ', 'その他'],
       iryo:    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
@@ -2326,11 +2364,17 @@
       }
 
       /* ── 実施内容（モニタリング時は非表示） ── */
-      if (showJisshi) html += '<div class="p-section">' +
-        secBar('実施内容', 'p-sec-helper') +
-        '<table class="p-table">' +
-        row('実施サービス', doneStr) +
-        '</table></div>';
+      if (showJisshi) {
+        const payerStr = r.katsudo_payer === 'その他' && r.katsudo_payer_other
+          ? 'その他：' + r.katsudo_payer_other : (r.katsudo_payer || '');
+        html += '<div class="p-section">' +
+          secBar('実施内容', 'p-sec-helper') +
+          '<table class="p-table">' +
+          row('実施サービス', doneStr) +
+          row('案件名・活動内容', r.katsudo_name) +
+          row('費用負担元', payerStr) +
+          '</table></div>';
+      }
 
       /* ── 医療・投薬（医療職記入）── 非表示なら出力しない */
       if (showIryo) {
@@ -2509,6 +2553,14 @@
         if (cb) cb.checked = true;
       });
 
+      // 活動随行（自費・第三者負担）
+      if (document.getElementById('f-katsudo-name'))  document.getElementById('f-katsudo-name').value  = r.katsudo_name  || '';
+      if (document.getElementById('f-katsudo-payer')) {
+        document.getElementById('f-katsudo-payer').value = r.katsudo_payer || '';
+        toggleKatsudoPayerOther();
+      }
+      if (document.getElementById('f-katsudo-payer-other')) document.getElementById('f-katsudo-payer-other').value = r.katsudo_payer_other || '';
+
       // 医療・投薬
       setRadio('rx', r.rx);
       if (document.getElementById('f-rx-note')) document.getElementById('f-rx-note').value = r.rx_note || '';
@@ -2629,6 +2681,9 @@
         mom:       valOf(form, 'mom'),
         mom_note:  document.getElementById('f-mom-note').value.trim(),
         done:      doneCbs,
+        katsudo_name:  document.getElementById('f-katsudo-name')  ? document.getElementById('f-katsudo-name').value.trim()  : '',
+        katsudo_payer: document.getElementById('f-katsudo-payer') ? document.getElementById('f-katsudo-payer').value        : '',
+        katsudo_payer_other: document.getElementById('f-katsudo-payer-other') ? document.getElementById('f-katsudo-payer-other').value.trim() : '',
         rx:        valOf(form, 'rx'),
         rx_note:   document.getElementById('f-rx-note').value.trim(),
         okuri:     document.getElementById('f-okuri').value.trim(),
@@ -2884,6 +2939,15 @@
         'セミナー・講座への同行',
         'その他（就労関連）'
       ],
+      // ── 活動随行（自費・第三者負担） ──────────────────────
+      '活動随行': [
+        '外出・移動の付き添い',
+        '資料準備・配布補助',
+        '会場内の移動介助',
+        '発言・質疑応答の補助（代読・代筆等）',
+        'ICT機器操作補助',
+        'その他'
+      ],
     };
 
     /* ─── 眼圧「測定不能」チェック連動 ──────────────── */
@@ -2898,6 +2962,17 @@
       if (na) input.value = '';
       announce((side === 'r' ? '右眼' : '左眼') + 'の眼圧を' +
                (na ? '測定不能に設定しました' : '数値入力に戻しました'));
+    }
+
+    /* ─── 活動随行：費用負担元「その他」選択時のテキスト欄トグル ── */
+    function toggleKatsudoPayerOther() {
+      const sel  = document.getElementById('f-katsudo-payer');
+      const wrap = document.getElementById('f-katsudo-payer-other-wrap');
+      if (!sel || !wrap) return;
+      const isOther = sel.value === 'その他';
+      wrap.style.display = isOther ? '' : 'none';
+      const input = document.getElementById('f-katsudo-payer-other');
+      if (input) { input.disabled = !isOther; if (!isOther) input.value = ''; }
     }
 
     /* ─── サービスごとの実施時間（任意） ──────────────── */
@@ -2968,6 +3043,16 @@
           '</div>';
       }).join('');
 
+      // 活動随行（自費・第三者負担）選択時のみ案件名・費用負担元を表示
+      const katsudoExtra = document.getElementById('sec-katsudo-extra');
+      if (katsudoExtra) {
+        const showKatsudo = svcSels.includes('活動随行');
+        katsudoExtra.style.display = showKatsudo ? '' : 'none';
+        katsudoExtra.querySelectorAll('input, select, textarea').forEach(inp => {
+          inp.disabled = !showKatsudo;
+        });
+      }
+
       // ── セクション表示制御 ──────────────────────────────────────
       // サービス種別ごとに表示するセクションを定義
       // キー：セクションid  値：表示するサービス種別の配列（空配列＝全種別で表示）
@@ -2987,7 +3072,7 @@
         // 空配列は「全種別で表示」を意味するため、モニタリング除外リストとして明示
         'sec-jisshi':  ['家事援助', '入浴介助', '訪問看護', '訪問鍼灸', '同行援護', '移動支援',
                         '訪問診療', '訪問服薬指導', '訪問リハビリ', '通院介助',
-                        '就労支援特別事業', 'その他'],
+                        '就労支援特別事業', '活動随行', 'その他'],
         'sec-iryo':    ['訪問看護', '訪問鍼灸', '訪問診療', '訪問服薬指導'],
         // 眼科訪問診療専用：眼科診療記録セクション
         'sec-eye':     ['眼科訪問診療'],
